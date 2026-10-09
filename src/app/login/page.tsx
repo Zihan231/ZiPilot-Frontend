@@ -19,7 +19,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
+  const { user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, redirectError } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('signin');
   const [name, setName] = useState('');
@@ -31,6 +31,10 @@ export default function LoginPage() {
   useEffect(() => {
     if (!loading && user) router.replace('/dashboard');
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (redirectError) setError(authErrorMessage(redirectError));
+  }, [redirectError]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,7 +60,8 @@ export default function LoginPage() {
     setError('');
     setBusy('google');
     try {
-      await signInWithGoogle();
+      const how = await signInWithGoogle();
+      if (how === 'redirect') return; // page is navigating to Google; keep the spinner
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {
@@ -112,7 +117,13 @@ export default function LoginPage() {
 
           {mode !== 'reset' && (
             <>
-              <Button className="mt-8 w-full" onClick={google} loading={busy === 'google'} disabled={!!busy}>
+              <Button
+                className="mt-8 w-full"
+                onClick={google}
+                loading={busy === 'google' || loading}
+                disabled={!!busy || loading}
+                title={loading ? 'Preparing secure sign-in…' : undefined}
+              >
                 {busy !== 'google' && <GoogleIcon />}
                 Continue with Google
               </Button>
