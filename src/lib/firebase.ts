@@ -1,11 +1,22 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
+/**
+ * On deployed sites, sign-in runs through our own domain (proxied to Firebase by next.config
+ * rewrites) so the result isn't lost to third-party storage partitioning. Locally we use the
+ * default firebaseapp.com handler.
+ */
+function resolveAuthDomain() {
+  // Deployed: always our own host (ignores NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, which would reintroduce the cross-site problem).
+  if (typeof window !== 'undefined' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) return window.location.host;
+  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'zipilot24x7.firebaseapp.com';
+}
+
 // Firebase web config is public by design (security comes from Auth + backend token checks),
 // so it ships as a default. NEXT_PUBLIC_FIREBASE_* variables can still override it.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyAETnDBeETQiw88bgwZ-K-8T-E39wSREDM',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'zipilot24x7.firebaseapp.com',
+  authDomain: resolveAuthDomain(),
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'zipilot24x7',
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'zipilot24x7.firebasestorage.app',
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '107930667668',
