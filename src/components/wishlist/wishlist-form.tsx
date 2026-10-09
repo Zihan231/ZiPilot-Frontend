@@ -75,7 +75,7 @@ export function WishlistForm({ job }: { job?: WishlistJob }) {
         <Field label="Job URL" className="sm:col-span-2">
           <Input {...text('jobUrl')} type="url" placeholder="https://…" />
         </Field>
-        <Field label="Application deadline" hint="Drives urgency, reminders and sorting">
+        <Field label="Application deadline" hint="Email reminders go out 3 days and 1 day before">
           <Input {...text('deadline')} type="date" />
         </Field>
         <Field label="Priority">
@@ -110,7 +110,7 @@ export function WishlistForm({ job }: { job?: WishlistJob }) {
             <Select value={f.currency} onChange={set('currency')} placeholder="—" options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
           </Field>
         </div>
-        <Field label="Remind me on">
+        <Field label="Remind me on" hint="Extra email reminder on this date">
           <Input {...text('reminderAt')} type="date" min={todayInput()} />
         </Field>
         <div className="flex items-end pb-2">

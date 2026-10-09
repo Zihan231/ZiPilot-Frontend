@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   History,
+  MailCheck,
   MessageSquare,
   MessageSquareReply,
   Pencil,
@@ -35,6 +36,7 @@ const ICON: Record<ActivityType, { icon: React.ElementType; cls: string }> = {
   TASK_ADDED: { icon: ClipboardCheck, cls: 'bg-surface-2 text-fg-2' },
   TASK_SUBMITTED: { icon: Send, cls: 'bg-violet-soft text-violet' },
   TASK_COMPLETED: { icon: ClipboardCheck, cls: 'bg-good-soft text-good' },
+  REMINDER_SENT: { icon: MailCheck, cls: 'bg-accent-soft text-accent' },
 };
 
 function dayLabel(iso: string) {

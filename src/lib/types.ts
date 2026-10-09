@@ -35,7 +35,8 @@ export type ActivityType =
   | 'FOLLOWUP_COMPLETED'
   | 'TASK_ADDED'
   | 'TASK_SUBMITTED'
-  | 'TASK_COMPLETED';
+  | 'TASK_COMPLETED'
+  | 'REMINDER_SENT';
 
 export interface FollowUp {
   id: string;
@@ -282,6 +283,14 @@ export interface FilterPreset {
   scope: 'APPLICATIONS' | 'WISHLIST';
   name: string;
   query: string;
+}
+
+export interface NotificationStatus {
+  configured: boolean;
+  recipient: string | null;
+  schedule: string;
+  pendingNow: number;
+  lastSentAt: string | null;
 }
 
 export interface Me {

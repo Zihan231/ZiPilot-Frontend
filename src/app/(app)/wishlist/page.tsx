@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { toast } from 'sonner';
 import { MarkAppliedButton, StatusBadge } from '@/components/applications/actions';
+import { EmailRemindersCard } from '@/components/wishlist/email-reminders-card';
 import { DebouncedInput, FilterChips, FilterDrawer, PresetsMenu } from '@/components/applications/filter-ui';
 import { MenuItem, MenuLabel, MenuSeparator, Popover } from '@/components/ui/overlay';
 import { HScroll } from '@/components/ui/scroll';
@@ -186,6 +187,8 @@ function WishlistList() {
           </LinkButton>
         }
       />
+
+      <EmailRemindersCard />
 
       <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 shadow-card lg:flex-row lg:items-center">
         <div className="flex rounded-xl bg-surface-2 p-1 ring-1 ring-line ring-inset">

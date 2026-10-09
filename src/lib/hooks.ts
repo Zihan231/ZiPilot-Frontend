@@ -18,6 +18,7 @@ import type {
   FollowUp,
   Interview,
   Me,
+  NotificationStatus,
   Paged,
   SearchResults,
   Task,
@@ -157,6 +158,30 @@ export const useCreateTask = () =>
   useDataMutation(({ applicationId, ...body }: Partial<Task> & { applicationId: string }) => api<Task>(`/applications/${applicationId}/tasks`, { method: 'POST', body }), 'Task added');
 export const useUpdateTask = () => useDataMutation(({ id, ...body }: Partial<Task> & { id: string }) => api<Task>(`/tasks/${id}`, { method: 'PATCH', body }), 'Task updated');
 export const useDeleteTask = () => useDataMutation((id: string) => api(`/tasks/${id}`, { method: 'DELETE' }), 'Task removed');
+
+export const useNotificationStatus = () =>
+  useQuery({ queryKey: ['notifications'], queryFn: () => api<NotificationStatus>('/notifications/status'), enabled: useEnabled(), staleTime: 60_000 });
+
+export function useSendTestEmail() {
+  return useMutation({
+    mutationFn: () => api<{ ok: boolean; to: string }>('/notifications/test', { method: 'POST' }),
+    onSuccess: (r) => toast.success(`Test email sent to ${r.to}`),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useRunReminders() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<{ sent: number; reason: string; to?: string }>('/notifications/reminders/run', { method: 'POST' }),
+    onSuccess: (r) => {
+      invalidateData(qc);
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+      toast[r.sent ? 'success' : 'info'](r.sent ? `Sent ${r.sent} reminder${r.sent > 1 ? 's' : ''} to ${r.to}` : 'No reminders are due right now');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
 
 export function useSavePreset() {
   const qc = useQueryClient();

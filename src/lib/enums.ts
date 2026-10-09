@@ -129,7 +129,7 @@ export const CHANNEL_OPTIONS = opts(CHANNEL_LABEL);
 
 export const ACTIVITY_GROUPS: { value: string; label: string; types: ActivityType[] }[] = [
   { value: 'applications', label: 'Applications', types: ['APPLICATION_CREATED'] },
-  { value: 'wishlist', label: 'Wishlist', types: ['WISHLIST_ADDED', 'WISHLIST_APPLIED'] },
+  { value: 'wishlist', label: 'Wishlist', types: ['WISHLIST_ADDED', 'WISHLIST_APPLIED', 'REMINDER_SENT'] },
   { value: 'status', label: 'Status changes', types: ['STATUS_CHANGED'] },
   { value: 'recruiter', label: 'Recruiter', types: ['RECRUITER_MESSAGE', 'RECRUITER_REPLY'] },
   { value: 'interviews', label: 'Interviews', types: ['INTERVIEW_SCHEDULED', 'INTERVIEW_UPDATED'] },
