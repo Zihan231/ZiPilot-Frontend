@@ -275,14 +275,39 @@ h3,
   background-size: 18px 18px;
 }
 
-@keyframes shimmer {
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+/* Skeleton loading: one slow, synchronised wave across every placeholder on screen.
+   background-attachment: fixed makes all skeletons share the same viewport-wide gradient,
+   so the highlight travels as a single calm sweep instead of many fast, out-of-sync blinks.
+   The sweep pauses briefly between passes and never jumps back visibly. */
+@keyframes skeleton-wave {
+  0% { background-position: -180vw 0; }
+  85%, 100% { background-position: -20vw 0; }
+}
+/* Gentle breathing so placeholders feel alive even between sweeps. */
+@keyframes skeleton-breathe {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
-  background-size: 800px 100%;
-  animation: shimmer 1.4s infinite linear;
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(100deg, transparent 42%, var(--skeleton-hi) 50%, transparent 58%);
+  background-size: 300vw 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation:
+    skeleton-wave 2.2s cubic-bezier(0.45, 0, 0.25, 1) infinite,
+    skeleton-breathe 2.2s ease-in-out infinite;
+}
+:root {
+  --skeleton-base: #e4e8f1;
+  --skeleton-hi: rgb(255 255 255 / 0.95);
+}
+:root[data-theme='dark'] {
+  --skeleton-base: #1b2440;
+  --skeleton-hi: rgb(165 180 252 / 0.14);
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background-image: none; }
 }
 
 @keyframes pop-in {
