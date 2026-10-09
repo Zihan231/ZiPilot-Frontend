@@ -1,0 +1,184 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+  color-scheme: light;
+  --bg: #f4f4f1;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --surface-3: #e8e7e3;
+  --line: #e2e1dc;
+  --line-strong: #cfcec8;
+  --fg: #0b0b0b;
+  --fg-2: #52514e;
+  --muted: #7d7c77;
+  --accent: #2a78d6;
+  --accent-strong: #1c5cab;
+  --accent-soft: #e3eefc;
+  --accent-ink: #ffffff;
+
+  /* status (reserved — always paired with an icon or label) */
+  --good: #0f7b3e;
+  --good-soft: #e3f4ea;
+  --warn: #9a6400;
+  --warn-soft: #fbf0d9;
+  --serious: #b9480f;
+  --serious-soft: #fde9de;
+  --critical: #c42b2b;
+  --critical-soft: #fbe4e4;
+  --info: #1c5cab;
+  --info-soft: #e3eefc;
+  --violet: #4a3aa7;
+  --violet-soft: #ebe8fa;
+
+  /* charts */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --ramp-1: #86b6ef;
+  --ramp-2: #5598e7;
+  --ramp-3: #2a78d6;
+  --ramp-4: #1c5cab;
+  --ramp-5: #104281;
+  --grid: #e8e7e3;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 30px -10px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.06);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f0f0e;
+  --surface: #1a1a19;
+  --surface-2: #222220;
+  --surface-3: #2c2c29;
+  --line: #2e2e2b;
+  --line-strong: #3d3d39;
+  --fg: #f7f7f5;
+  --fg-2: #c3c2b7;
+  --muted: #8f8e86;
+  --accent: #3987e5;
+  --accent-strong: #6da7ec;
+  --accent-soft: #16263b;
+  --accent-ink: #ffffff;
+
+  --good: #4cc47e;
+  --good-soft: #10291b;
+  --warn: #e0a83a;
+  --warn-soft: #2d2410;
+  --serious: #f08a52;
+  --serious-soft: #321c10;
+  --critical: #f07070;
+  --critical-soft: #341616;
+  --info: #6da7ec;
+  --info-soft: #16263b;
+  --violet: #9085e9;
+  --violet-soft: #221e3d;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --ramp-1: #184f95;
+  --ramp-2: #1c5cab;
+  --ramp-3: #2a78d6;
+  --ramp-4: #5598e7;
+  --ramp-5: #86b6ef;
+  --grid: #2a2a27;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-serious: var(--serious);
+  --color-serious-soft: var(--serious-soft);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--line);
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-pop { animation: pop-in 0.14s ease-out; }
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+.animate-drawer { animation: slide-in-right 0.2s ease-out; }
+
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+:root[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator,
+:root[data-theme='dark'] input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
