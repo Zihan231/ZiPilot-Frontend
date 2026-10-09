@@ -9,7 +9,7 @@ import { FollowUpsPanel, InterviewsPanel, RecruiterPanel, TasksPanel } from '@/c
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { Linkedin } from '@/components/ui/icons';
 import { Badge, Button, Card, CardHeader, CompanyAvatar, EmptyState, LinkButton, Skeleton } from '@/components/ui/ui';
-import { APPLIED_VIA_LABEL, JOB_TYPE_LABEL, PLATFORM_LABEL, PRIORITY_LABEL, PRIORITY_TONE, WORKPLACE_LABEL } from '@/lib/enums';
+import { appliedViaLabel, JOB_TYPE_LABEL, platformLabel, PRIORITY_LABEL, PRIORITY_TONE, WORKPLACE_LABEL } from '@/lib/enums';
 import { readStoredQuery } from '@/lib/filters';
 import { ago, daysLeft, daysLeftLabel, fmtDate, locationText, money } from '@/lib/format';
 import { useApplication, useDeleteApplication } from '@/lib/hooks';
@@ -56,14 +56,24 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   const deadline = daysLeft(app.deadline);
   const details: [string, React.ReactNode][] = [
     ['Applied', fmtDate(app.appliedAt)],
-    ['Platform', PLATFORM_LABEL[app.platform]],
-    ['Applied via', APPLIED_VIA_LABEL[app.appliedVia]],
+    ['Platform', platformLabel(app.platform)],
+    ['Applied via', appliedViaLabel(app.appliedVia)],
     ['Job type', JOB_TYPE_LABEL[app.jobType]],
     ['Workplace', WORKPLACE_LABEL[app.workplace]],
     ['Location', locationText(app)],
     ['Salary', money(app.salaryMin, app.salaryMax, app.currency)],
     ['Deadline', app.deadline ? `${fmtDate(app.deadline)} · ${daysLeftLabel(deadline)}` : '—'],
-    ['Resume', app.resumeVersion ?? '—'],
+    [
+      'Website',
+      app.companyWebsite ? (
+        <a href={app.companyWebsite} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+          {app.companyWebsite.replace(/^https?:\/\/(www\.)?/, '')}
+        </a>
+      ) : (
+        '—'
+      ),
+    ],
+    ['Job ID', app.jobReference ?? '—'],
     ['Last activity', ago(app.lastActivityAt)],
   ];
 

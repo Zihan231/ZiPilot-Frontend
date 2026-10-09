@@ -13,7 +13,7 @@ import { HScroll } from '@/components/ui/scroll';
 import { Badge, Button, Card, CardHeader, cn, CompanyAvatar, EmptyState, LinkButton, PageHeader, Select, SkeletonRows } from '@/components/ui/ui';
 import { AlarmClock, TimerOff } from 'lucide-react';
 import { download } from '@/lib/api';
-import { JOB_TYPE_LABEL, PLATFORM_LABEL, PRIORITY_LABEL, PRIORITY_TONE, WORKPLACE_LABEL } from '@/lib/enums';
+import { JOB_TYPE_LABEL, platformLabel, PRIORITY_LABEL, PRIORITY_TONE, WORKPLACE_LABEL } from '@/lib/enums';
 import { countActive, DEFAULT_WISHLIST_PRESETS, useUrlFilters, WISHLIST_FILTERS } from '@/lib/filters';
 import { daysLeft, daysLeftLabel, fmtShort, locationText, money } from '@/lib/format';
 import { useDeleteWishlist, useFacets, useUpdateWishlist, useWishlist } from '@/lib/hooks';
@@ -60,7 +60,7 @@ function JobRow({ job }: { job: WishlistJob }) {
             {job.company} <span className="font-normal text-fg-2">· {job.position}</span>
           </p>
           <p className="truncate text-xs text-muted">
-            {[WORKPLACE_LABEL[job.workplace], JOB_TYPE_LABEL[job.jobType], PLATFORM_LABEL[job.platform], locationText(job) !== '—' ? locationText(job) : null, money(job.salaryMin, job.salaryMax, job.currency) !== '—' ? money(job.salaryMin, job.salaryMax, job.currency) : null]
+            {[WORKPLACE_LABEL[job.workplace], JOB_TYPE_LABEL[job.jobType], platformLabel(job.platform), locationText(job) !== '—' ? locationText(job) : null, money(job.salaryMin, job.salaryMax, job.currency) !== '—' ? money(job.salaryMin, job.salaryMax, job.currency) : null]
               .filter(Boolean)
               .join(' · ')}
           </p>

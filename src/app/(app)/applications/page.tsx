@@ -13,11 +13,11 @@ import { HScroll, TableScroll } from '@/components/ui/scroll';
 import { Badge, Button, Card, Checkbox, cn, CompanyAvatar, EmptyState, LinkButton, PageHeader, Select, Skeleton } from '@/components/ui/ui';
 import { download } from '@/lib/api';
 import {
-  APPLIED_VIA_LABEL,
+  appliedViaLabel,
   CONNECTION_LABEL,
   JOB_TYPE_LABEL,
   MESSAGE_LABEL,
-  PLATFORM_LABEL,
+  platformLabel,
   PRIORITY_LABEL,
   PRIORITY_TONE,
   STATUS_OPTIONS,
@@ -40,8 +40,8 @@ const COLUMNS: Column[] = [
   { key: 'position', label: 'Position', sort: 'position', render: (a) => <span className="block max-w-[220px] truncate text-fg-2">{a.position}</span> },
   { key: 'status', label: 'Status', sort: 'status', render: (a) => <StatusMenu id={a.id} status={a.status} /> },
   { key: 'appliedAt', label: 'Applied', sort: 'appliedAt', render: (a) => <span className="whitespace-nowrap text-fg-2">{fmtShort(a.appliedAt)}</span> },
-  { key: 'platform', label: 'Platform', sort: 'platform', render: (a) => <span className="text-fg-2">{PLATFORM_LABEL[a.platform]}</span> },
-  { key: 'appliedVia', label: 'Applied via', render: (a) => <span className="text-fg-2">{APPLIED_VIA_LABEL[a.appliedVia]}</span> },
+  { key: 'platform', label: 'Platform', sort: 'platform', render: (a) => <span className="text-fg-2">{platformLabel(a.platform)}</span> },
+  { key: 'appliedVia', label: 'Applied via', render: (a) => <span className="text-fg-2">{appliedViaLabel(a.appliedVia)}</span> },
   { key: 'jobType', label: 'Job type', sort: 'jobType', render: (a) => <span className="text-fg-2">{JOB_TYPE_LABEL[a.jobType]}</span> },
   { key: 'workplace', label: 'Workplace', sort: 'workplace', render: (a) => <span className="text-fg-2">{WORKPLACE_LABEL[a.workplace]}</span> },
   { key: 'location', label: 'Location', render: (a) => <span className="block max-w-[160px] truncate text-fg-2">{locationText(a)}</span> },
@@ -56,7 +56,19 @@ const COLUMNS: Column[] = [
       return <span className={cn('whitespace-nowrap', n !== null && n < 0 ? 'text-critical' : 'text-fg-2')}>{a.deadline ? fmtRelativeDay(a.deadline) : '—'}</span>;
     },
   },
-  { key: 'resumeVersion', label: 'Resume', render: (a) => <span className="block max-w-[120px] truncate text-fg-2">{a.resumeVersion ?? '—'}</span> },
+  {
+    key: 'companyWebsite',
+    label: 'Website',
+    render: (a) =>
+      a.companyWebsite ? (
+        <a href={a.companyWebsite} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="block max-w-[160px] truncate text-accent hover:underline">
+          {a.companyWebsite.replace(/^https?:\/\/(www\.)?/, '')}
+        </a>
+      ) : (
+        <span className="text-muted">—</span>
+      ),
+  },
+  { key: 'jobReference', label: 'Job ID', render: (a) => <span className="text-fg-2">{a.jobReference ?? '—'}</span> },
   { key: 'recruiter', label: 'Recruiter', render: (a) => <span className="block max-w-[140px] truncate text-fg-2">{a.recruiterName ?? '—'}</span> },
   { key: 'connection', label: 'Connection', render: (a) => <span className="text-fg-2">{CONNECTION_LABEL[a.connectionStatus]}</span> },
   {

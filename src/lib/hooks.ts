@@ -17,6 +17,7 @@ import type {
   FilterPreset,
   FollowUp,
   Interview,
+  CustomOptions,
   Me,
   NotificationStatus,
   Paged,
@@ -128,12 +129,59 @@ export const useCreateWishlist = () => useDataMutation((body: Partial<WishlistJo
 export const useUpdateWishlist = () =>
   useDataMutation(({ id, ...body }: Partial<WishlistJob> & { id: string }) => api<WishlistJob>(`/wishlist/${id}`, { method: 'PATCH', body }), 'Saved');
 export const useDeleteWishlist = () => useDataMutation((id: string) => api(`/wishlist/${id}`, { method: 'DELETE' }), 'Removed from wishlist');
-export const useApplyWishlist = () =>
-  useDataMutation(
-    ({ id, ...body }: { id: string; appliedAt?: string; appliedVia?: string; resumeVersion?: string | null }) =>
+/**
+ * Mark a wishlist job as applied. Optimistic: the job leaves "to apply" lists, dashboard deadlines
+ * and the attention centre immediately; everything is rolled back if the request fails.
+ */
+export function useApplyWishlist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string; appliedAt?: string; appliedVia?: string }) =>
       api<Application>(`/wishlist/${id}/apply`, { method: 'POST', body }),
-    (r) => `Marked applied — ${r.company}`,
-  );
+    onMutate: async ({ id }) => {
+      await Promise.all(['wishlist', 'attention', 'dashboard'].map((k) => qc.cancelQueries({ queryKey: [k] })));
+      const snapshot = [
+        ...qc.getQueriesData({ queryKey: ['wishlist'] }),
+        ...qc.getQueriesData({ queryKey: ['attention'] }),
+        ...qc.getQueriesData({ queryKey: ['dashboard'] }),
+      ];
+      const now = new Date().toISOString();
+      for (const [key, data] of qc.getQueriesData<Paged<WishlistJob>>({ queryKey: ['wishlist'] })) {
+        if (!data?.items) continue;
+        const state = new URLSearchParams(String(key[1] ?? '')).get('state');
+        const has = data.items.some((j) => j.id === id);
+        if (!has) continue;
+        qc.setQueryData<Paged<WishlistJob>>(
+          key,
+          state === 'applied' || state === 'all'
+            ? { ...data, items: data.items.map((j) => (j.id === id ? { ...j, appliedAt: now } : j)) }
+            : { ...data, items: data.items.filter((j) => j.id !== id), total: Math.max(0, data.total - 1) },
+        );
+      }
+      qc.setQueryData<Attention>(['attention'], (a) => {
+        if (!a) return a;
+        const drop = (s: Attention['wishlistDueSoon']) => {
+          const items = s.items.filter((j) => j.id !== id);
+          return { items, total: s.total - (s.items.length - items.length) };
+        };
+        const dueSoon = drop(a.wishlistDueSoon);
+        const overdue = drop(a.wishlistOverdue);
+        const removed = a.wishlistDueSoon.total - dueSoon.total + (a.wishlistOverdue.total - overdue.total);
+        return { ...a, wishlistDueSoon: dueSoon, wishlistOverdue: overdue, total: a.total - removed };
+      });
+      for (const [key, o] of qc.getQueriesData<DashboardOverview>({ queryKey: ['dashboard'] })) {
+        if (o?.wishlistDeadlines) qc.setQueryData<DashboardOverview>(key, { ...o, wishlistDeadlines: o.wishlistDeadlines.filter((j) => j.id !== id) });
+      }
+      return { snapshot };
+    },
+    onError: (e: Error, _v, ctx) => {
+      ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message || 'Could not mark as applied');
+    },
+    onSuccess: (r) => toast.success(`Marked applied — ${r.company}`),
+    onSettled: () => invalidateData(qc),
+  });
+}
 
 export const useCreateFollowUp = () =>
   useDataMutation(
@@ -161,6 +209,29 @@ export const useDeleteTask = () => useDataMutation((id: string) => api(`/tasks/$
 
 export const useNotificationStatus = () =>
   useQuery({ queryKey: ['notifications'], queryFn: () => api<NotificationStatus>('/notifications/status'), enabled: useEnabled(), staleTime: 60_000 });
+
+/** The user's saved custom Platform / Applied via choices. */
+export function useCustomOptions(): CustomOptions {
+  const { data } = useMe();
+  return { platform: data?.customOptions?.platform ?? [], appliedVia: data?.customOptions?.appliedVia ?? [] };
+}
+
+export function useSaveCustomOptions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (opts: CustomOptions) => api<CustomOptions>('/me/options', { method: 'PUT', body: opts }),
+    onMutate: (opts) => {
+      const prev = qc.getQueryData<Me>(['me']);
+      qc.setQueryData<Me>(['me'], (m) => (m ? { ...m, customOptions: opts } : m));
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['me'], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['me'] }),
+  });
+}
 
 export function useSavePreset() {
   const qc = useQueryClient();

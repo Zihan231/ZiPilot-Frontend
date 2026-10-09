@@ -37,12 +37,16 @@ export function DebouncedInput({ value, onChange, delay = 300, ...rest }: { valu
   return <Input value={v} onChange={(e) => setV(e.target.value)} {...rest} />;
 }
 
+/** Static options (e.g. built-in platforms) merged with values actually in use (e.g. custom platforms). */
 function facetOptions(def: Extract<FilterDef, { kind: 'multi' }>, facets?: Facets) {
-  if (def.options) return def.options;
-  if (!def.facet || !facets) return [];
-  const f = facets[def.facet];
-  if (!f) return [];
-  return (f as (string | { value: string; count: number })[]).map((x) => (typeof x === 'string' ? { value: x, label: x } : { value: x.value, label: x.value, count: x.count }));
+  const base = def.options ?? [];
+  const f = def.facet && facets ? facets[def.facet] : undefined;
+  if (!f) return base;
+  const used = (f as (string | { value: string; count: number })[]).map((x) =>
+    typeof x === 'string' ? { value: x, label: x } : { value: x.value, label: x.value, count: x.count },
+  );
+  const known = new Set(base.map((o) => o.value));
+  return [...base, ...used.filter((o) => !known.has(o.value))];
 }
 
 export function FilterControl({ def, url, facets }: { def: FilterDef; url: Url; facets?: Facets }) {

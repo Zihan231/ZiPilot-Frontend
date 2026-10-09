@@ -9,8 +9,10 @@ export type ApplicationStatus =
   | 'REJECTED'
   | 'WITHDRAWN'
   | 'GHOSTED';
-export type Platform = 'LINKEDIN' | 'INDEED' | 'GLASSDOOR' | 'COMPANY_WEBSITE' | 'WELLFOUND' | 'BDJOBS' | 'ZIPRECRUITER' | 'REFERRAL' | 'OTHER';
-export type AppliedVia = 'EASY_APPLY' | 'WEBSITE' | 'EMAIL' | 'REFERRAL' | 'RECRUITER' | 'JOB_PORTAL' | 'OTHER';
+/** Built-in key (LINKEDIN, INDEED, …) or a user's custom option text. */
+export type Platform = string;
+/** Built-in key (EASY_APPLY, WEBSITE, …) or a user's custom option text. */
+export type AppliedVia = string;
 export type JobType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE' | 'TEMPORARY';
 export type Workplace = 'REMOTE' | 'HYBRID' | 'ONSITE';
 export type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
@@ -120,7 +122,8 @@ export interface Application {
   priority: Priority;
   appliedAt: string;
   deadline: string | null;
-  resumeVersion: string | null;
+  companyWebsite: string | null;
+  jobReference: string | null;
   notes: string | null;
   recruiterName: string | null;
   recruiterEmail: string | null;
@@ -163,6 +166,12 @@ export interface WishlistJob {
   position: string;
   jobUrl: string | null;
   platform: Platform;
+  appliedVia: AppliedVia | null;
+  companyWebsite: string | null;
+  jobReference: string | null;
+  recruiterName: string | null;
+  recruiterEmail: string | null;
+  recruiterLinkedin: string | null;
   location: string | null;
   country: string | null;
   city: string | null;
@@ -194,7 +203,9 @@ export interface Facets {
   countries: string[];
   cities: string[];
   currencies: string[];
-  resumeVersions?: string[];
+  /** Platform / applied-via values currently in use (includes custom ones). */
+  platforms?: string[];
+  appliedVias?: string[];
 }
 
 export interface RangeInfo {
@@ -293,10 +304,16 @@ export interface NotificationStatus {
   lastSentAt: string | null;
 }
 
+export interface CustomOptions {
+  platform: string[];
+  appliedVia: string[];
+}
+
 export interface Me {
   id: string;
   email: string | null;
   displayName: string | null;
   photoUrl: string | null;
   dashboardLayout: { id: string; visible: boolean }[] | null;
+  customOptions: CustomOptions | null;
 }

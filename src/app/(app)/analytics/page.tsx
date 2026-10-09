@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import { BarList, Donut, Funnel, PlatformChart, RateTile, VolumeChart } from '@/components/charts/charts';
 import { DateRangePicker, rangeFromParams, rangeToQuery } from '@/components/dashboard/date-range';
 import { Card, CardHeader, cn, EmptyState, PageHeader, Skeleton, SkeletonRows } from '@/components/ui/ui';
-import { JOB_TYPE_LABEL, PLATFORM_LABEL, STATUS_LABEL, WORKPLACE_LABEL } from '@/lib/enums';
+import { JOB_TYPE_LABEL, platformLabel, STATUS_LABEL, WORKPLACE_LABEL } from '@/lib/enums';
 import { useUrlFilters } from '@/lib/filters';
 import { useAnalytics } from '@/lib/hooks';
 
@@ -115,7 +115,7 @@ function AnalyticsView() {
             hue="teal"
             title="Applications by platform"
             icon={<Building2 />}
-            subtitle={best ? `${PLATFORM_LABEL[best.platform]} produces the most interviews (${best.interviews}, ${best.interviewRate}% rate)` : 'Which platforms lead to interviews'}
+            subtitle={best ? `${platformLabel(best.platform)} produces the most interviews (${best.interviews}, ${best.interviewRate}% rate)` : 'Which platforms lead to interviews'}
           />
           <div className="px-3 pb-4">
             {!a ? (
@@ -123,7 +123,7 @@ function AnalyticsView() {
             ) : a.byPlatform.length === 0 ? (
               <EmptyState compact title="No data" />
             ) : (
-              <PlatformChart data={a.byPlatform.map((p) => ({ key: p.platform, label: PLATFORM_LABEL[p.platform], total: p.total, interviews: p.interviews }))} onSelect={(platform) => open({ platform })} />
+              <PlatformChart data={a.byPlatform.map((p) => ({ key: p.platform, label: platformLabel(p.platform), total: p.total, interviews: p.interviews }))} onSelect={(platform) => open({ platform })} />
             )}
           </div>
         </Card>
@@ -178,7 +178,7 @@ function AnalyticsView() {
                 <tbody className="divide-y divide-line">
                   {a.byPlatform.map((p) => (
                     <tr key={p.platform} className="cursor-pointer hover:bg-surface-2/50" onClick={() => open({ platform: p.platform })}>
-                      <td className="px-3 py-2 font-medium">{PLATFORM_LABEL[p.platform]}</td>
+                      <td className="px-3 py-2 font-medium">{platformLabel(p.platform)}</td>
                       <td className="tabular px-3 py-2 text-right">{p.total}</td>
                       <td className="tabular px-3 py-2 text-right">{p.interviews}</td>
                       <td className="tabular px-3 py-2 text-right">{p.offers}</td>

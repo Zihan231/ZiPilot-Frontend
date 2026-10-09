@@ -3,12 +3,10 @@
 import { useRouter } from '@/lib/navigation';
 import { useState } from 'react';
 import {
-  APPLIED_VIA_OPTIONS,
   CONNECTION_OPTIONS,
   CURRENCIES,
   JOB_TYPE_OPTIONS,
   MESSAGE_OPTIONS,
-  PLATFORM_OPTIONS,
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
   WORKPLACE_OPTIONS,
@@ -17,6 +15,7 @@ import { fromDateInput, toDateInput, todayInput } from '@/lib/format';
 import { useCreateApplication, useCreateFollowUp, useFacets, useUpdateApplication } from '@/lib/hooks';
 import type { Application } from '@/lib/types';
 import type { Hue } from '@/lib/enums';
+import { OptionPicker } from '../ui/option-picker';
 import { Button, Card, Checkbox, Field, Input, Select, Textarea } from '../ui/ui';
 
 type FormState = Record<string, string | boolean>;
@@ -40,7 +39,8 @@ function initial(app?: Application): FormState {
     priority: app?.priority ?? 'MEDIUM',
     appliedAt: app ? toDateInput(app.appliedAt) : todayInput(),
     deadline: toDateInput(app?.deadline),
-    resumeVersion: app?.resumeVersion ?? '',
+    companyWebsite: app?.companyWebsite ?? '',
+    jobReference: app?.jobReference ?? '',
     notes: app?.notes ?? '',
     recruiterName: app?.recruiterName ?? '',
     recruiterEmail: app?.recruiterEmail ?? '',
@@ -83,8 +83,8 @@ export function ApplicationForm({ app }: { app?: Application }) {
       company: String(f.company).trim(),
       position: String(f.position).trim(),
       jobUrl: str('jobUrl'),
-      platform: f.platform as Application['platform'],
-      appliedVia: f.appliedVia as Application['appliedVia'],
+      platform: String(f.platform),
+      appliedVia: String(f.appliedVia),
       jobType: f.jobType as Application['jobType'],
       workplace: f.workplace as Application['workplace'],
       location: str('location'),
@@ -97,7 +97,8 @@ export function ApplicationForm({ app }: { app?: Application }) {
       priority: f.priority as Application['priority'],
       appliedAt: fromDateInput(String(f.appliedAt)) ?? new Date().toISOString(),
       deadline: fromDateInput(String(f.deadline)),
-      resumeVersion: str('resumeVersion'),
+      companyWebsite: str('companyWebsite'),
+      jobReference: str('jobReference'),
       notes: str('notes'),
       recruiterName: str('recruiterName'),
       recruiterEmail: str('recruiterEmail'),
@@ -135,14 +136,20 @@ export function ApplicationForm({ app }: { app?: Application }) {
         <Field label="Position" required>
           <Input {...text('position')} required placeholder="e.g. Frontend Engineer" />
         </Field>
-        <Field label="Job URL" className="sm:col-span-2">
+        <Field label="Job URL">
           <Input {...text('jobUrl')} type="url" placeholder="https://…" />
         </Field>
+        <Field label="Job ID / reference">
+          <Input {...text('jobReference')} placeholder="e.g. REQ-2048" />
+        </Field>
+        <Field label="Company website" className="sm:col-span-2">
+          <Input {...text('companyWebsite')} type="url" placeholder="https://company.com" />
+        </Field>
         <Field label="Platform">
-          <Select value={String(f.platform)} onChange={set('platform')} options={PLATFORM_OPTIONS} />
+          <OptionPicker kind="platform" value={String(f.platform)} onChange={set('platform')} />
         </Field>
         <Field label="Applied via">
-          <Select value={String(f.appliedVia)} onChange={set('appliedVia')} options={APPLIED_VIA_OPTIONS} />
+          <OptionPicker kind="appliedVia" value={String(f.appliedVia)} onChange={set('appliedVia')} />
         </Field>
         <Field label="Job type">
           <Select value={String(f.jobType)} onChange={set('jobType')} options={JOB_TYPE_OPTIONS} />
@@ -186,10 +193,6 @@ export function ApplicationForm({ app }: { app?: Application }) {
         </Field>
         <Field label="Deadline" hint="Response, offer or assessment deadline">
           <Input {...text('deadline')} type="date" />
-        </Field>
-        <Field label="Resume version">
-          <Input {...text('resumeVersion')} list="resume-list" placeholder="e.g. v3-frontend" />
-          <datalist id="resume-list">{facets?.resumeVersions?.map((c) => <option key={c} value={c} />)}</datalist>
         </Field>
         {!app && (
           <Field label="Follow up on" hint="Optional — creates a follow-up reminder">

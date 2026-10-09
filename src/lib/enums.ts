@@ -1,14 +1,12 @@
 import type {
   ActivityType,
   ApplicationStatus,
-  AppliedVia,
   ConnectionStatus,
   FollowUpChannel,
   InterviewStatus,
   InterviewType,
   JobType,
   MessageStatus,
-  Platform,
   Priority,
   TaskStatus,
   TaskType,
@@ -50,7 +48,7 @@ export const STATUS_TONE: Record<ApplicationStatus, Tone> = {
 };
 export const STATUS_OPTIONS = opts(STATUS_LABEL);
 
-export const PLATFORM_LABEL: Record<Platform, string> = {
+export const PLATFORM_LABEL: Record<string, string> = {
   LINKEDIN: 'LinkedIn',
   INDEED: 'Indeed',
   GLASSDOOR: 'Glassdoor',
@@ -62,8 +60,10 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
   OTHER: 'Other',
 };
 export const PLATFORM_OPTIONS = opts(PLATFORM_LABEL);
+/** Label for a built-in platform key, or the custom text itself. */
+export const platformLabel = (v?: string | null) => (v ? (PLATFORM_LABEL[v] ?? v) : '—');
 
-export const APPLIED_VIA_LABEL: Record<AppliedVia, string> = {
+export const APPLIED_VIA_LABEL: Record<string, string> = {
   EASY_APPLY: 'Easy Apply',
   WEBSITE: 'Website',
   EMAIL: 'Email',
@@ -73,6 +73,8 @@ export const APPLIED_VIA_LABEL: Record<AppliedVia, string> = {
   OTHER: 'Other',
 };
 export const APPLIED_VIA_OPTIONS = opts(APPLIED_VIA_LABEL);
+/** Label for a built-in applied-via key, or the custom text itself. */
+export const appliedViaLabel = (v?: string | null) => (v ? (APPLIED_VIA_LABEL[v] ?? v) : '—');
 
 export const JOB_TYPE_LABEL: Record<JobType, string> = {
   FULL_TIME: 'Full-time',
