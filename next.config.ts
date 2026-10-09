@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       { source: '/__/auth/:path*', destination: `${FIREBASE_AUTH_HOST}/__/auth/:path*` },
-      { source: '/__/firebase/:path*', destination: `${FIREBASE_AUTH_HOST}/__/firebase/:path*` },
     ];
   },
 };
