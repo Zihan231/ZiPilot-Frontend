@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { pct } from '@/lib/format';
-import { cn } from '../ui/ui';
+import type { Hue } from '@/lib/enums';
+import { cn, HUE } from '../ui/ui';
 
 const VARS = ['--series-1', '--series-2', '--series-3', '--grid', '--muted', '--fg', '--fg-2', '--surface', '--line', '--ramp-1', '--ramp-2', '--ramp-3', '--ramp-4', '--ramp-5'] as const;
 type Colors = Record<(typeof VARS)[number], string>;
@@ -302,21 +303,25 @@ export function Donut({ data, onSelect }: { data: { key: string; label: string; 
   );
 }
 
-/** Headline rate — a stat tile rather than a chart. */
-export function RateTile({ label, value, detail, onClick }: { label: string; value: number; detail: string; onClick?: () => void }) {
+/** Headline rate — a stat tile rather than a chart. Hue identifies the metric; the bar shows the rate. */
+export function RateTile({ label, value, detail, onClick, hue = 'blue' }: { label: string; value: number; detail: string; onClick?: () => void; hue?: Hue }) {
+  const h = HUE[hue];
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className="rounded-xl border border-line bg-surface p-4 text-left shadow-card transition-colors enabled:hover:border-line-strong"
+      className="group relative overflow-hidden rounded-2xl border border-line bg-surface p-4 text-left shadow-card transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-raised"
     >
-      <p className="text-xs font-medium text-fg-2">{label}</p>
-      <p className="tabular mt-1.5 text-2xl font-semibold tracking-tight">{pct(value)}</p>
-      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
-        <div className="h-full rounded-full bg-[var(--series-1)]" style={{ width: `${Math.min(100, value)}%` }} />
+      <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: h.fg }} />
+      <p className="text-xs font-semibold text-fg-2">{label}</p>
+      <p className="font-display tabular mt-1.5 text-[28px] leading-none font-bold tracking-tight" style={{ color: h.fg }}>
+        {pct(value)}
+      </p>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-3">
+        <div className="h-full rounded-full" style={{ width: `${Math.min(100, value)}%`, background: h.fg }} />
       </div>
-      <p className="mt-2 text-[11px] text-muted">{detail}</p>
+      <p className="mt-2 text-[11px] leading-snug text-muted">{detail}</p>
     </button>
   );
 }

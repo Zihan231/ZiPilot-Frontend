@@ -47,8 +47,9 @@ export function RecruiterPanel({ app }: { app: ApplicationDetail }) {
   ] as const;
 
   return (
-    <Card>
+    <Card hue="violet">
       <CardHeader
+        hue="violet"
         title="Recruiter outreach"
         icon={<UserRound />}
         action={
@@ -115,8 +116,9 @@ export function FollowUpsPanel({ app }: { app: ApplicationDetail }) {
   const done = app.followUps.filter((f) => f.completedAt);
 
   return (
-    <Card id="follow-ups">
+    <Card hue="orange" id="follow-ups">
       <CardHeader
+        hue="orange"
         title="Follow-ups"
         icon={<MessageSquareReply />}
         count={pending.length}
@@ -214,8 +216,9 @@ export function InterviewsPanel({ app }: { app: ApplicationDetail }) {
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <Card id="interviews">
+    <Card hue="indigo" id="interviews">
       <CardHeader
+        hue="indigo"
         title="Interviews"
         icon={<CalendarClock />}
         count={app.interviews.length}
@@ -330,8 +333,9 @@ export function TasksPanel({ app }: { app: ApplicationDetail }) {
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <Card id="tasks">
+    <Card hue="teal" id="tasks">
       <CardHeader
+        hue="teal"
         title="Assessments & tasks"
         icon={<ClipboardList />}
         count={app.tasks.filter((t) => t.status === 'PENDING').length}

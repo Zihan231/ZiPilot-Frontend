@@ -16,6 +16,7 @@ import {
 import { fromDateInput, toDateInput, todayInput } from '@/lib/format';
 import { useCreateApplication, useCreateFollowUp, useFacets, useUpdateApplication } from '@/lib/hooks';
 import type { Application } from '@/lib/types';
+import type { Hue } from '@/lib/enums';
 import { Button, Card, Checkbox, Field, Input, Select, Textarea } from '../ui/ui';
 
 type FormState = Record<string, string | boolean>;
@@ -54,10 +55,10 @@ function initial(app?: Application): FormState {
   };
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function Section({ title, description, children, hue = 'indigo' }: { title: string; description?: string; children: React.ReactNode; hue?: Hue }) {
   return (
-    <Card className="p-5">
-      <h2 className="text-sm font-semibold">{title}</h2>
+    <Card hue={hue} className="p-5 sm:p-6">
+      <h2 className="text-[15px] font-semibold">{title}</h2>
       {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">{children}</div>
     </Card>
@@ -173,7 +174,7 @@ export function ApplicationForm({ app }: { app?: Application }) {
         </div>
       </Section>
 
-      <Section title="Tracking">
+      <Section title="Tracking" hue="blue">
         <Field label="Status">
           <Select value={String(f.status)} onChange={set('status')} options={STATUS_OPTIONS} />
         </Field>
@@ -197,7 +198,7 @@ export function ApplicationForm({ app }: { app?: Application }) {
         )}
       </Section>
 
-      <Section title="Recruiter" description="Track your outreach from connection request to MSG-3.">
+      <Section title="Recruiter" hue="violet" description="Track your outreach from connection request to MSG-3.">
         <Field label="Recruiter name">
           <Input {...text('recruiterName')} />
         </Field>

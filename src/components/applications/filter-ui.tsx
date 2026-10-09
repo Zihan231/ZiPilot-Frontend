@@ -1,6 +1,7 @@
 'use client';
 
-import { Bookmark, ChevronDown, Filter, Plus, Star, Trash2, X } from 'lucide-react';
+import { Bookmark, Briefcase, CalendarClock, ChevronDown, Database, Filter, Globe, MapPin, Plus, Star, Trash2, UserRound, X } from 'lucide-react';
+import type { Hue } from '@/lib/enums';
 import { useEffect, useMemo, useState } from 'react';
 import { CURRENCIES } from '@/lib/enums';
 import { chipLabel, countActive, filterKeys, filterOnly, isActive, type FilterDef, type useUrlFilters } from '@/lib/filters';
@@ -8,7 +9,18 @@ import { useDeletePreset, usePresets, useSavePreset } from '@/lib/hooks';
 import type { Facets, FilterPreset } from '@/lib/types';
 import { OptionList, PillGroup } from '../ui/multi-select';
 import { Drawer, MenuItem, MenuLabel, MenuSeparator, Modal, Popover } from '../ui/overlay';
-import { Button, cn, Field, Input, Select } from '../ui/ui';
+import { Button, cn, Field, IconTile, Input, Select } from '../ui/ui';
+
+const GROUP_META: Record<string, { icon: React.ElementType; hue: Hue }> = {
+  Application: { icon: Briefcase, hue: 'indigo' },
+  Source: { icon: Globe, hue: 'blue' },
+  Job: { icon: MapPin, hue: 'teal' },
+  Recruiter: { icon: UserRound, hue: 'violet' },
+  Pipeline: { icon: CalendarClock, hue: 'orange' },
+  'Data quality': { icon: Database, hue: 'slate' },
+  Deadline: { icon: CalendarClock, hue: 'rose' },
+  Tracking: { icon: Star, hue: 'amber' },
+};
 
 type Url = ReturnType<typeof useUrlFilters>;
 
@@ -128,9 +140,20 @@ export function FilterDrawer({ open, onClose, defs, url, facets, total, fetching
       <div className="divide-y divide-line">
         {groups.map(([group, items]) => (
           <details key={group} open className="group px-5 py-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-[11px] font-semibold tracking-wide text-muted uppercase">
-              {group}
-              <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+            <summary className="flex cursor-pointer list-none items-center gap-2.5 py-1">
+              {(() => {
+                const meta = GROUP_META[group] ?? { icon: Filter, hue: 'slate' as Hue };
+                return (
+                  <IconTile hue={meta.hue} size="sm">
+                    <meta.icon />
+                  </IconTile>
+                );
+              })()}
+              <span className="flex-1 text-[13px] font-bold text-fg">{group}</span>
+              {items.some((d) => isActive(d, url.params)) && (
+                <span className="rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">{items.filter((d) => isActive(d, url.params)).length}</span>
+              )}
+              <ChevronDown className="h-4 w-4 text-muted transition-transform group-open:rotate-180" />
             </summary>
             <div className="mt-2 space-y-4">
               {items.map((d) => (
@@ -178,8 +201,8 @@ export function FilterChips({ defs, url, facets, total, extra }: { defs: FilterD
 
 function Chip({ label, value, onRemove }: { label: string; value: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-accent/25 bg-accent-soft py-0.5 pr-1 pl-2.5 text-xs text-accent">
-      <span className="font-medium">{label}:</span>
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-accent/25 bg-accent-soft py-1 pr-1 pl-3 text-xs text-accent shadow-card">
+      <span className="font-semibold">{label}:</span>
       <span className="truncate">{value}</span>
       <button onClick={onRemove} className="rounded-full p-0.5 hover:bg-accent/15" aria-label={`Remove ${label} filter`}>
         <X className="h-3 w-3" />

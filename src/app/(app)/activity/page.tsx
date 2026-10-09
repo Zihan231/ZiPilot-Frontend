@@ -4,7 +4,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Suspense } from 'react';
 import { ActivityFeed, ActivityTypeFilter } from '@/components/dashboard/activity-feed';
 import { DateRangePicker } from '@/components/dashboard/date-range';
-import { Button, Card } from '@/components/ui/ui';
+import { History } from 'lucide-react';
+import { Button, Card, PageHeader } from '@/components/ui/ui';
 import { useUrlFilters } from '@/lib/filters';
 import { useActivity } from '@/lib/hooks';
 
@@ -20,10 +21,7 @@ function ActivityView() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Activity</h1>
-        <p className="text-sm text-muted">Everything that changed in your job search, newest first.</p>
-      </div>
+      <PageHeader title="Activity" icon={<History />} hue="slate" description="Everything that changed in your job search, newest first." />
       <div className="space-y-3">
         <DateRangePicker
           value={{ range, from: url.get('from') || undefined, to: url.get('to') || undefined }}
@@ -31,7 +29,7 @@ function ActivityView() {
         />
         <ActivityTypeFilter value={url.getList('types')} onChange={(v) => url.update({ types: v })} />
       </div>
-      <Card className={isFetching && !isLoading ? 'opacity-75' : ''}>
+      <Card hue="slate" className={isFetching && !isLoading ? 'opacity-75' : ''}>
         <div className="px-2 py-3">
           <ActivityFeed items={data?.items} loading={isLoading} />
         </div>

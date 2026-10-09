@@ -14,6 +14,19 @@ import { readStoredQuery } from '@/lib/filters';
 import { ago, daysLeft, daysLeftLabel, fmtDate, locationText, money } from '@/lib/format';
 import { useApplication, useDeleteApplication } from '@/lib/hooks';
 
+const HEADER_COLOR: Record<string, string> = {
+  APPLIED: '#0284c7',
+  SCREENING: '#7c3aed',
+  IN_REVIEW: '#7c3aed',
+  ASSESSMENT: '#d97706',
+  INTERVIEW: '#4f46e5',
+  OFFER: '#059669',
+  ACCEPTED: '#059669',
+  REJECTED: '#e11d48',
+  WITHDRAWN: '#64748b',
+  GHOSTED: '#64748b',
+};
+
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -60,13 +73,20 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
         <ArrowLeft className="h-4 w-4" /> Applications
       </Link>
 
-      <Card className="p-4 sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <Card className="overflow-hidden">
+        <div className="h-20 sm:h-24" style={{ background: `linear-gradient(120deg, ${HEADER_COLOR[app.status]}, color-mix(in oklab, ${HEADER_COLOR[app.status]} 35%, #1e1b4b))` }}>
+          <div className="hero-pattern h-full w-full" />
+        </div>
+        <div className="-mt-8 flex flex-col gap-4 px-4 pb-4 sm:flex-row sm:items-end sm:px-6 sm:pb-5">
           <div className="flex min-w-0 flex-1 items-center gap-3.5">
-            <CompanyAvatar name={app.company} />
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold tracking-tight sm:text-xl">{app.position}</h1>
-              <p className="truncate text-sm text-fg-2">{app.company}</p>
+            <span className="rounded-2xl bg-surface p-1.5 shadow-raised">
+              <CompanyAvatar name={app.company} />
+            </span>
+            <div className="min-w-0 pt-8">
+              <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">{app.position}</h1>
+              <p className="truncate text-sm font-medium text-fg-2">
+                {app.company} · applied {fmtDate(app.appliedAt)}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -105,8 +125,8 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
           <TasksPanel app={app} />
         </div>
         <div className="space-y-4">
-          <Card>
-            <CardHeader title="Details" icon={<Info />} />
+          <Card hue="slate">
+            <CardHeader hue="slate" title="Details" icon={<Info />} />
             <dl className="divide-y divide-line px-4 pb-2">
               {details.map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4 py-2 text-[13px]">
@@ -122,8 +142,8 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
               <p className="text-[13px] leading-relaxed whitespace-pre-wrap text-fg-2">{app.notes}</p>
             </Card>
           )}
-          <Card>
-            <CardHeader title="Timeline" icon={<History />} />
+          <Card hue="blue">
+            <CardHeader hue="blue" title="Timeline" icon={<History />} subtitle="Every change to this application" />
             <div className="max-h-[520px] overflow-y-auto px-2 pb-3">
               <ActivityFeed items={app.activities} dense />
             </div>

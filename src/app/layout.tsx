@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from './providers';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const display = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', weight: ['500', '600', '700', '800'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: { default: 'ZiPilot', template: '%s · ZiPilot' },
@@ -15,8 +16,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f4f4f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f0f0e' },
+    { media: '(prefers-color-scheme: light)', color: '#f3f5fa' },
+    { media: '(prefers-color-scheme: dark)', color: '#090d1a' },
   ],
 };
 
@@ -25,7 +26,7 @@ const themeScript = `(function(){try{var t=localStorage.getItem('zp-theme');if(!
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { BarList, Donut, Funnel, PlatformChart, RateTile, VolumeChart } from '@/components/charts/charts';
 import { DateRangePicker, rangeFromParams, rangeToQuery } from '@/components/dashboard/date-range';
-import { Card, CardHeader, cn, EmptyState, Skeleton, SkeletonRows } from '@/components/ui/ui';
+import { Card, CardHeader, cn, EmptyState, PageHeader, Skeleton, SkeletonRows } from '@/components/ui/ui';
 import { JOB_TYPE_LABEL, PLATFORM_LABEL, STATUS_LABEL, WORKPLACE_LABEL } from '@/lib/enums';
 import { useUrlFilters } from '@/lib/filters';
 import { useAnalytics } from '@/lib/hooks';
@@ -38,10 +38,7 @@ function AnalyticsView() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Analytics</h1>
-          <p className="text-sm text-muted">What’s working in your job search. Click any bar or segment to see those applications.</p>
-        </div>
+        <PageHeader title="Analytics" icon={<BarChart3 />} hue="blue" description="What’s working in your job search. Click any bar or segment to see those applications." />
         <DateRangePicker value={range} info={a?.range} onChange={(v) => url.update(rangeToQuery(v))} />
       </div>
 
@@ -51,24 +48,25 @@ function AnalyticsView() {
           Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[118px]" />)
         ) : (
           <>
-            <RateTile label="Response rate" value={a.conversion.responseRate} detail={`${a.funnel[1].count} of ${a.total} got a response`} onClick={() => open({ reached: 'responded' })} />
-            <RateTile label="Interview conversion" value={a.conversion.interviewRate} detail={`${a.funnel[3].count} of ${a.total} reached interview`} onClick={() => open({ reached: 'interviewed' })} />
-            <RateTile label="Offer conversion" value={a.conversion.offerRate} detail={`${a.funnel[4].count} of ${a.total} received an offer`} onClick={() => open({ reached: 'offered' })} />
-            <RateTile label="Interview → offer" value={a.conversion.interviewToOffer} detail={`${a.funnel[4].count} offers from ${a.funnel[3].count} interviews`} onClick={() => open({ reached: 'offered' })} />
-            <RateTile
+            <RateTile hue="blue" label="Response rate" value={a.conversion.responseRate} detail={`${a.funnel[1].count} of ${a.total} got a response`} onClick={() => open({ reached: 'responded' })} />
+            <RateTile hue="indigo" label="Interview conversion" value={a.conversion.interviewRate} detail={`${a.funnel[3].count} of ${a.total} reached interview`} onClick={() => open({ reached: 'interviewed' })} />
+            <RateTile hue="emerald" label="Offer conversion" value={a.conversion.offerRate} detail={`${a.funnel[4].count} of ${a.total} received an offer`} onClick={() => open({ reached: 'offered' })} />
+            <RateTile hue="violet" label="Interview → offer" value={a.conversion.interviewToOffer} detail={`${a.funnel[4].count} offers from ${a.funnel[3].count} interviews`} onClick={() => open({ reached: 'offered' })} />
+            <RateTile hue="teal"
               label="Recruiter response rate"
               value={a.recruiterResponse.rate}
               detail={`${a.recruiterResponse.replied} replies from ${a.recruiterResponse.contacted} contacted`}
               onClick={() => open({ contacted: 'yes', replied: 'yes' })}
             />
-            <RateTile label="Follow-up completion" value={a.followUpCompletion.rate} detail={`${a.followUpCompletion.completed} of ${a.followUpCompletion.due} due follow-ups done`} />
+            <RateTile hue="orange" label="Follow-up completion" value={a.followUpCompletion.rate} detail={`${a.followUpCompletion.completed} of ${a.followUpCompletion.due} due follow-ups done`} />
           </>
         )}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card hue="blue" className="lg:col-span-2">
           <CardHeader
+            hue="blue"
             title="Application volume"
             icon={<BarChart3 />}
             subtitle={a ? `${a.total} applications in ${a.range.label.toLowerCase()}` : undefined}
@@ -91,13 +89,13 @@ function AnalyticsView() {
           </div>
         </Card>
 
-        <Card>
-          <CardHeader title="Application funnel" icon={<FunnelIcon />} subtitle="Furthest stage each application reached" />
+        <Card hue="indigo">
+          <CardHeader hue="indigo" title="Application funnel" icon={<FunnelIcon />} subtitle="Furthest stage each application reached" />
           <div className="px-2 pb-4">{!a ? <SkeletonRows rows={5} /> : <Funnel stages={a.funnel} onSelect={(k) => open(k === 'applied' ? {} : { reached: k })} />}</div>
         </Card>
 
-        <Card>
-          <CardHeader title="Status distribution" icon={<PieChart />} />
+        <Card hue="violet">
+          <CardHeader hue="violet" title="Status distribution" icon={<PieChart />} />
           <div className="px-2 pb-4">
             {!a ? (
               <SkeletonRows rows={5} />
@@ -112,8 +110,9 @@ function AnalyticsView() {
           </div>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card hue="teal" className="lg:col-span-2">
           <CardHeader
+            hue="teal"
             title="Applications by platform"
             icon={<Building2 />}
             subtitle={best ? `${PLATFORM_LABEL[best.platform]} produces the most interviews (${best.interviews}, ${best.interviewRate}% rate)` : 'Which platforms lead to interviews'}
@@ -129,8 +128,8 @@ function AnalyticsView() {
           </div>
         </Card>
 
-        <Card>
-          <CardHeader title="Remote vs hybrid vs onsite" icon={<Laptop />} />
+        <Card hue="emerald">
+          <CardHeader hue="emerald" title="Remote vs hybrid vs onsite" icon={<Laptop />} />
           <div className="px-4 pb-4">
             {!a ? (
               <SkeletonRows rows={3} />
@@ -145,8 +144,8 @@ function AnalyticsView() {
           </div>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader title="Applications by job type" icon={<Layers />} />
+        <Card hue="amber" className="lg:col-span-2">
+          <CardHeader hue="amber" title="Applications by job type" icon={<Layers />} />
           <div className="px-2 pb-4">
             {!a ? (
               <SkeletonRows rows={4} />
@@ -158,8 +157,8 @@ function AnalyticsView() {
           </div>
         </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader title="Platform performance" icon={<Building2 />} subtitle="Interview and offer rates by source" />
+        <Card hue="slate" className="lg:col-span-3">
+          <CardHeader hue="slate" title="Platform performance" icon={<Building2 />} subtitle="Interview and offer rates by source" />
           <div className="overflow-x-auto px-1 pb-3">
             {!a ? (
               <SkeletonRows rows={4} />

@@ -16,6 +16,7 @@ import type {
 } from './types';
 
 export type Tone = 'neutral' | 'info' | 'accent' | 'violet' | 'good' | 'warn' | 'serious' | 'critical';
+export type Hue = 'indigo' | 'blue' | 'violet' | 'teal' | 'emerald' | 'amber' | 'orange' | 'rose' | 'slate';
 export interface Option<T extends string = string> {
   value: T;
   label: string;

@@ -5,32 +5,37 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { INTERVIEW_TYPE_LABEL, PRIORITY_LABEL, PRIORITY_TONE, STATUS_LABEL, TASK_STATUS_LABEL, TASK_TYPE_LABEL } from '@/lib/enums';
+import type { Hue } from '@/lib/enums';
 import { daysLeft, daysLeftLabel, fmtDateTime, fmtRelativeDay, fmtShort } from '@/lib/format';
 import { useActivity } from '@/lib/hooks';
 import type { Analytics, DashboardOverview } from '@/lib/types';
 import { ApplicationRowMenu, FollowUpDoneButton, MarkAppliedButton, RescheduleFollowUp, StatusMenu } from '../applications/actions';
 import { BarList, VolumeChart } from '../charts/charts';
-import { Badge, Card, CardHeader, cn, CompanyAvatar, EmptyState, Skeleton, SkeletonRows } from '../ui/ui';
+import { ScrollArea, TableScroll } from '../ui/scroll';
+import { Badge, Card, CardHeader, cn, CompanyAvatar, EmptyState, HUE, Skeleton, SkeletonRows } from '../ui/ui';
 import { ActivityFeed, ActivityTypeFilter } from './activity-feed';
 
 function ViewAll({ href, label = 'View all' }: { href: string; label?: string }) {
   return (
-    <Link href={href} className="flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-      {label} <ArrowRight className="h-3 w-3" />
+    <Link
+      href={href}
+      className="group inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft"
+    >
+      {label} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 }
 
 const qs = (q: Record<string, string>) => new URLSearchParams(q).toString();
 
-function Table({ head, children, className }: { head: string[]; children: React.ReactNode; className?: string }) {
+function Table({ head, children, className, align }: { head: string[]; children: React.ReactNode; className?: string; align?: ('left' | 'right')[] }) {
   return (
-    <div className={cn('overflow-x-auto', className)}>
-      <table className="w-full text-[13px]">
+    <TableScroll className={className}>
+      <table className="w-full min-w-[440px] text-[13px]">
         <thead>
-          <tr className="border-y border-line bg-surface-2/50 text-left text-[11px] font-medium tracking-wide text-muted uppercase">
+          <tr className="border-y border-line bg-surface-2/70 text-left text-[10.5px] font-bold tracking-[0.06em] text-muted uppercase">
             {head.map((h, i) => (
-              <th key={h + i} className={cn('px-4 py-2 font-medium whitespace-nowrap', i === head.length - 1 && 'text-right')}>
+              <th key={h + i} className={cn('px-4 py-2.5 whitespace-nowrap', (align?.[i] ?? (i === head.length - 1 ? 'right' : 'left')) === 'right' && 'text-right')}>
                 {h}
               </th>
             ))}
@@ -38,19 +43,21 @@ function Table({ head, children, className }: { head: string[]; children: React.
         </thead>
         <tbody className="divide-y divide-line">{children}</tbody>
       </table>
-    </div>
+    </TableScroll>
   );
 }
+
+const rowCls = 'transition-colors hover:bg-surface-2/60';
 
 /** Mobile-first list item that replaces wide table rows on small screens. */
 function MobileItem({ href, company, title, sub, right }: { href: string; company: string; title: string; sub: React.ReactNode; right: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5">
+    <div className="flex items-center gap-3 px-4 py-3">
       <Link href={href} className="flex min-w-0 flex-1 items-center gap-3">
         <CompanyAvatar name={company} size="sm" />
         <div className="min-w-0">
-          <p className="truncate text-[13px] font-medium">{title}</p>
-          <p className="truncate text-[11px] text-muted">{sub}</p>
+          <p className="truncate text-[13px] font-semibold">{title}</p>
+          <p className="truncate text-[11.5px] text-muted">{sub}</p>
         </div>
       </Link>
       <div className="flex shrink-0 items-center gap-1">{right}</div>
@@ -58,47 +65,77 @@ function MobileItem({ href, company, title, sub, right }: { href: string; compan
   );
 }
 
-// ── Upcoming agenda (next 14 days across deadlines, interviews, follow-ups, tasks) ──
+// ── Upcoming agenda (deadlines, interviews, follow-ups, tasks) ──
+const KIND: Record<string, { hue: Hue; label: string }> = {
+  w: { hue: 'amber', label: 'Apply by' },
+  i: { hue: 'indigo', label: 'Interview' },
+  f: { hue: 'orange', label: 'Follow up' },
+  t: { hue: 'teal', label: 'Task due' },
+};
+
 export function UpcomingDeadlines({ data, loading }: { data?: DashboardOverview; loading?: boolean }) {
-  type Item = { id: string; date: string; kind: string; tone: 'warn' | 'accent' | 'serious' | 'violet'; title: string; sub: string; href: string };
+  type Item = { id: string; date: string; kind: keyof typeof KIND; title: string; sub: string; href: string };
   const items: Item[] = [];
   if (data) {
-    for (const w of data.wishlistDeadlines) items.push({ id: `w${w.id}`, date: w.deadline!, kind: 'Apply by', tone: 'warn', title: w.company, sub: w.position, href: `/wishlist/${w.id}` });
-    for (const i of data.upcomingInterviews)
-      items.push({ id: `i${i.id}`, date: i.scheduledAt, kind: 'Interview', tone: 'accent', title: i.application!.company, sub: INTERVIEW_TYPE_LABEL[i.type], href: `/applications/${i.applicationId}` });
+    for (const w of data.wishlistDeadlines) items.push({ id: `w${w.id}`, date: w.deadline!, kind: 'w', title: w.company, sub: w.position, href: `/wishlist/${w.id}` });
+    for (const i of data.upcomingInterviews) items.push({ id: `i${i.id}`, date: i.scheduledAt, kind: 'i', title: i.application!.company, sub: INTERVIEW_TYPE_LABEL[i.type], href: `/applications/${i.applicationId}` });
     for (const f of data.followUps)
-      items.push({ id: `f${f.id}`, date: f.dueAt, kind: 'Follow up', tone: 'serious', title: f.application!.company, sub: f.application!.recruiterName ?? f.application!.position, href: `/applications/${f.applicationId}` });
-    for (const t of data.pendingTasks)
-      if (t.dueAt) items.push({ id: `t${t.id}`, date: t.dueAt, kind: 'Task due', tone: 'violet', title: t.application!.company, sub: t.title, href: `/applications/${t.applicationId}` });
+      items.push({ id: `f${f.id}`, date: f.dueAt, kind: 'f', title: f.application!.company, sub: f.application!.recruiterName ?? f.application!.position, href: `/applications/${f.applicationId}` });
+    for (const t of data.pendingTasks) if (t.dueAt) items.push({ id: `t${t.id}`, date: t.dueAt, kind: 't', title: t.application!.company, sub: t.title, href: `/applications/${t.applicationId}` });
   }
   items.sort((a, b) => +new Date(a.date) - +new Date(b.date));
 
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader title="Upcoming deadlines" icon={<CalendarRange />} subtitle="Deadlines, interviews, follow-ups and tasks — soonest first" />
-      <div className="flex-1 overflow-y-auto px-2 pb-3 lg:max-h-[460px]">
+    <Card hue="rose" className="flex h-full flex-col">
+      <CardHeader
+        hue="rose"
+        title="Upcoming deadlines"
+        icon={<CalendarRange />}
+        count={items.length || undefined}
+        subtitle="Deadlines, interviews, follow-ups & tasks — soonest first"
+      />
+      <div className="flex flex-wrap gap-x-3 gap-y-1 px-5 pb-2">
+        {Object.entries(KIND).map(([k, v]) => (
+          <span key={k} className="flex items-center gap-1.5 text-[11px] text-muted">
+            <span className="h-2 w-2 rounded-full" style={{ background: HUE[v.hue].fg }} />
+            {v.label}
+          </span>
+        ))}
+      </div>
+      <ScrollArea className="px-2 pb-3 lg:max-h-[470px]">
         {loading || !data ? (
           <SkeletonRows rows={5} />
         ) : items.length === 0 ? (
-          <EmptyState compact icon={<CalendarRange />} title="Nothing scheduled" description="Add wishlist deadlines, interviews or follow-ups to see them here." />
+          <EmptyState compact hue="rose" icon={<CalendarRange />} title="Nothing scheduled" description="Add wishlist deadlines, interviews or follow-ups to see them here." />
         ) : (
-          <ol className="space-y-0.5">
-            {items.slice(0, 12).map((it) => {
+          <ol className="space-y-1">
+            {items.slice(0, 14).map((it) => {
               const n = daysLeft(it.date) ?? 0;
+              const k = KIND[it.kind];
+              const d = new Date(it.date);
               return (
                 <li key={it.id}>
-                  <Link href={it.href} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-surface-2/70">
-                    <div className={cn('flex w-12 shrink-0 flex-col items-center rounded-lg border py-1', n < 0 ? 'border-critical/30 bg-critical-soft' : 'border-line bg-surface-2/60')}>
-                      <span className="text-[10px] font-medium text-muted uppercase">{fmtShort(it.date).split(' ')[0]}</span>
-                      <span className="tabular text-sm leading-none font-semibold">{new Date(it.date).getDate()}</span>
+                  <Link href={it.href} className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-surface-2/70">
+                    <div
+                      className="flex w-12 shrink-0 flex-col items-center overflow-hidden rounded-xl border bg-surface shadow-card"
+                      style={{ borderColor: n < 0 ? 'var(--critical)' : 'var(--line)' }}
+                    >
+                      <span className="w-full py-px text-center text-[9px] font-bold tracking-wider text-white uppercase" style={{ background: n < 0 ? 'var(--critical)' : HUE[k.hue].fg }}>
+                        {d.toLocaleString('en', { month: 'short' })}
+                      </span>
+                      <span className="font-display tabular py-0.5 text-base leading-tight font-bold">{d.getDate()}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium">{it.title}</p>
-                      <p className="truncate text-[11px] text-muted">{it.sub}</p>
+                      <p className="truncate text-[13px] font-semibold">{it.title}</p>
+                      <p className="truncate text-[11.5px] text-muted">{it.sub}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <Badge tone={it.tone}>{it.kind}</Badge>
-                      <span className={cn('text-[11px]', n < 0 ? 'font-medium text-critical' : 'text-muted')}>{n < 0 ? `${Math.abs(n)}d overdue` : fmtRelativeDay(it.date)}</span>
+                      <span className="rounded-full px-2 py-0.5 text-[10.5px] font-semibold" style={{ background: HUE[k.hue].soft, color: HUE[k.hue].fg }}>
+                        {k.label}
+                      </span>
+                      <span className={cn('text-[11px]', n < 0 ? 'font-bold text-critical' : n === 0 ? 'font-semibold text-serious' : 'text-muted')}>
+                        {n < 0 ? `${Math.abs(n)}d overdue` : fmtRelativeDay(it.date)}
+                      </span>
                     </div>
                   </Link>
                 </li>
@@ -106,7 +143,7 @@ export function UpcomingDeadlines({ data, loading }: { data?: DashboardOverview;
             })}
           </ol>
         )}
-      </div>
+      </ScrollArea>
     </Card>
   );
 }
@@ -114,18 +151,19 @@ export function UpcomingDeadlines({ data, loading }: { data?: DashboardOverview;
 // ── Charts ──
 export function VolumeCard({ analytics, loading }: { analytics?: Analytics; loading?: boolean }) {
   return (
-    <Card className="h-full">
+    <Card hue="blue" className="h-full">
       <CardHeader
+        hue="blue"
         title="Application activity"
         icon={<BarChart3 />}
-        subtitle={analytics ? `${analytics.total} applications · per ${analytics.granularity}` : undefined}
+        subtitle={analytics ? `${analytics.total} applications · grouped per ${analytics.granularity} · click a bar to drill in` : undefined}
         action={<ViewAll href="/analytics" label="Analytics" />}
       />
       <div className="px-3 pb-4">
         {loading || !analytics ? (
           <Skeleton className="h-[240px] w-full" />
         ) : analytics.total === 0 ? (
-          <EmptyState compact icon={<BarChart3 />} title="No applications in this range" description="Try a wider date range." />
+          <EmptyState compact hue="blue" icon={<BarChart3 />} title="No applications in this range" description="Try a wider date range." />
         ) : (
           <VolumeChart data={analytics.volume} granularity={analytics.granularity} baseQuery={analytics.rangeQuery} />
         )}
@@ -137,13 +175,13 @@ export function VolumeCard({ analytics, loading }: { analytics?: Analytics; load
 export function StatusCard({ analytics, loading }: { analytics?: Analytics; loading?: boolean }) {
   const router = useRouter();
   return (
-    <Card className="h-full">
-      <CardHeader title="Status distribution" icon={<PieChart />} subtitle={analytics?.range.label} />
-      <div className="px-2 pb-4">
+    <Card hue="violet" className="h-full">
+      <CardHeader hue="violet" title="Status distribution" icon={<PieChart />} subtitle={analytics ? `${analytics.range.label} · click a row to filter` : undefined} />
+      <div className="px-3 pb-4">
         {loading || !analytics ? (
           <SkeletonRows rows={5} />
         ) : analytics.statusDistribution.length === 0 ? (
-          <EmptyState compact icon={<PieChart />} title="No data in this range" />
+          <EmptyState compact hue="violet" icon={<PieChart />} title="No data in this range" />
         ) : (
           <BarList
             rows={analytics.statusDistribution.map((s) => ({
@@ -164,19 +202,19 @@ export function StatusCard({ analytics, loading }: { analytics?: Analytics; load
 export function RecentApplicationsTable({ data, loading, rangeQuery }: { data?: DashboardOverview; loading?: boolean; rangeQuery: Record<string, string> }) {
   const rows = data?.recentApplications ?? [];
   return (
-    <Card className="h-full overflow-hidden">
-      <CardHeader title="Recent applications" icon={<Briefcase />} action={<ViewAll href={`/applications?${qs({ ...rangeQuery, sort: 'appliedAt', dir: 'desc' })}`} />} />
+    <Card hue="indigo" className="h-full overflow-hidden">
+      <CardHeader hue="indigo" title="Recent applications" icon={<Briefcase />} action={<ViewAll href={`/applications?${qs({ ...rangeQuery, sort: 'appliedAt', dir: 'desc' })}`} />} />
       {loading || !data ? (
         <SkeletonRows rows={5} />
       ) : rows.length === 0 ? (
-        <EmptyState compact icon={<Briefcase />} title="No applications yet" description="Add your first application to start tracking." />
+        <EmptyState compact hue="indigo" icon={<Briefcase />} title="No applications yet" description="Add your first application to start tracking." />
       ) : (
         <>
           <Table head={['Company', 'Position', 'Status', 'Applied', '']} className="hidden md:block">
             {rows.map((a) => (
-              <tr key={a.id} className="hover:bg-surface-2/50">
+              <tr key={a.id} className={rowCls}>
                 <td className="px-4 py-2.5">
-                  <Link href={`/applications/${a.id}`} className="flex items-center gap-2.5 font-medium hover:text-accent">
+                  <Link href={`/applications/${a.id}`} className="flex items-center gap-2.5 font-semibold hover:text-accent">
                     <CompanyAvatar name={a.company} size="sm" />
                     <span className="max-w-[140px] truncate">{a.company}</span>
                   </Link>
@@ -194,14 +232,7 @@ export function RecentApplicationsTable({ data, loading, rangeQuery }: { data?: 
           </Table>
           <div className="divide-y divide-line border-t border-line md:hidden">
             {rows.map((a) => (
-              <MobileItem
-                key={a.id}
-                href={`/applications/${a.id}`}
-                company={a.company}
-                title={a.company}
-                sub={`${a.position} · ${fmtShort(a.appliedAt)}`}
-                right={<StatusMenu id={a.id} status={a.status} compact />}
-              />
+              <MobileItem key={a.id} href={`/applications/${a.id}`} company={a.company} title={a.company} sub={`${a.position} · ${fmtShort(a.appliedAt)}`} right={<StatusMenu id={a.id} status={a.status} compact />} />
             ))}
           </div>
         </>
@@ -213,26 +244,26 @@ export function RecentApplicationsTable({ data, loading, rangeQuery }: { data?: 
 export function WishlistQuickTable({ data, loading }: { data?: DashboardOverview; loading?: boolean }) {
   const rows = data?.wishlistDeadlines ?? [];
   return (
-    <Card className="h-full overflow-hidden">
-      <CardHeader title="Wishlist deadlines" icon={<Bookmark />} subtitle="Apply to these first" action={<ViewAll href="/wishlist?state=active&sort=deadline&dir=asc" />} />
+    <Card hue="amber" className="h-full overflow-hidden">
+      <CardHeader hue="amber" title="Wishlist deadlines" icon={<Bookmark />} subtitle="Apply to these first" action={<ViewAll href="/wishlist?sort=deadline&dir=asc" />} />
       {loading || !data ? (
         <SkeletonRows rows={5} />
       ) : rows.length === 0 ? (
-        <EmptyState compact icon={<Bookmark />} title="No upcoming wishlist deadlines" description="Save jobs with deadlines to prioritise what to apply to next." />
+        <EmptyState compact hue="amber" icon={<Bookmark />} title="No upcoming wishlist deadlines" description="Save jobs with deadlines to prioritise what to apply to next." />
       ) : (
         <>
           <Table head={['Company', 'Position', 'Days left', 'Priority', 'Apply']} className="hidden md:block [&_th:nth-child(2)]:hidden [&_td:nth-child(2)]:hidden 2xl:[&_th:nth-child(2)]:table-cell 2xl:[&_td:nth-child(2)]:table-cell">
             {rows.map((w) => {
               const n = daysLeft(w.deadline);
               return (
-                <tr key={w.id} className="hover:bg-surface-2/50">
+                <tr key={w.id} className={rowCls}>
                   <td className="px-4 py-2.5">
-                    <Link href={`/wishlist/${w.id}`} className="flex items-center gap-2.5 font-medium hover:text-accent">
+                    <Link href={`/wishlist/${w.id}`} className="flex items-center gap-2.5 font-semibold hover:text-accent">
                       <CompanyAvatar name={w.company} size="sm" />
-                      <span className="max-w-[130px] truncate">{w.company}</span>
+                      <span className="max-w-[120px] truncate">{w.company}</span>
                     </Link>
                   </td>
-                  <td className="max-w-[160px] truncate px-4 py-2.5 text-fg-2">{w.position}</td>
+                  <td className="max-w-[150px] truncate px-4 py-2.5 text-fg-2">{w.position}</td>
                   <td className="px-4 py-2.5 whitespace-nowrap">
                     <Badge tone={n !== null && n <= 1 ? 'serious' : n !== null && n <= 3 ? 'warn' : 'neutral'}>{daysLeftLabel(n)}</Badge>
                   </td>
@@ -260,32 +291,34 @@ export function WishlistQuickTable({ data, loading }: { data?: DashboardOverview
 export function FollowUpsTable({ data, loading }: { data?: DashboardOverview; loading?: boolean }) {
   const rows = data?.followUps ?? [];
   return (
-    <Card className="h-full overflow-hidden">
-      <CardHeader title="Recruiter follow-ups" icon={<MessageSquareReply />} action={<ViewAll href="/applications?followUp=pending" />} />
+    <Card hue="teal" className="h-full overflow-hidden">
+      <CardHeader hue="teal" title="Recruiter follow-ups" icon={<MessageSquareReply />} action={<ViewAll href="/applications?followUp=pending" />} />
       {loading || !data ? (
         <SkeletonRows rows={4} />
       ) : rows.length === 0 ? (
-        <EmptyState compact icon={<MessageSquareReply />} title="No pending follow-ups" description="Schedule follow-ups from an application’s page." />
+        <EmptyState compact hue="teal" icon={<MessageSquareReply />} title="No pending follow-ups" description="Schedule follow-ups from an application’s page." />
       ) : (
         <>
-          <Table head={['Company', 'Position', 'Due', 'Mark done']} className="hidden md:block">
+          <Table head={['Company', 'Position', 'Due', 'Actions']} className="hidden md:block [&_th:nth-child(2)]:hidden [&_td:nth-child(2)]:hidden 2xl:[&_th:nth-child(2)]:table-cell 2xl:[&_td:nth-child(2)]:table-cell">
             {rows.map((f) => {
               const n = daysLeft(f.dueAt) ?? 0;
               return (
-                <tr key={f.id} className="hover:bg-surface-2/50">
+                <tr key={f.id} className={rowCls}>
                   <td className="px-4 py-2.5">
-                    <Link href={`/applications/${f.applicationId}`} className="flex items-center gap-2.5 font-medium hover:text-accent">
+                    <Link href={`/applications/${f.applicationId}`} className="flex items-center gap-2.5 font-semibold hover:text-accent">
                       <CompanyAvatar name={f.application!.company} size="sm" />
                       <span className="max-w-[130px] truncate">{f.application!.company}</span>
                     </Link>
                   </td>
                   <td className="max-w-[160px] truncate px-4 py-2.5 text-fg-2">{f.application!.position}</td>
-                  <td className={cn('px-4 py-2.5 whitespace-nowrap', n < 0 ? 'font-medium text-critical' : n === 0 ? 'font-medium text-serious' : 'text-fg-2')}>
-                    {n < 0 ? `${Math.abs(n)}d overdue` : fmtRelativeDay(f.dueAt)}
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    {n < 0 ? <Badge tone="critical">{Math.abs(n)}d overdue</Badge> : n === 0 ? <Badge tone="serious">Today</Badge> : <span className="text-fg-2">{fmtRelativeDay(f.dueAt)}</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                    <RescheduleFollowUp id={f.id} />
-                    <FollowUpDoneButton id={f.id} />
+                    <span className="inline-flex gap-1.5">
+                      <RescheduleFollowUp id={f.id} />
+                      <FollowUpDoneButton id={f.id} />
+                    </span>
                   </td>
                 </tr>
               );
@@ -318,46 +351,54 @@ export function InterviewsTasksTable({ data, loading }: { data?: DashboardOvervi
   const [tab, setTab] = useState<'interviews' | 'tasks'>('interviews');
   const interviews = data?.upcomingInterviews ?? [];
   const tasks = data?.pendingTasks ?? [];
+  const hue: Hue = tab === 'interviews' ? 'indigo' : 'teal';
   return (
-    <Card className="h-full overflow-hidden">
+    <Card hue={hue} className="h-full overflow-hidden">
       <CardHeader
-        title={
-          <span className="flex items-center gap-1">
-            {(['interviews', 'tasks'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={cn('rounded-md px-2 py-0.5 text-sm font-semibold', tab === t ? 'bg-surface-2 text-fg' : 'text-muted hover:text-fg')}
-              >
-                {t === 'interviews' ? `Upcoming interviews (${interviews.length})` : `Tasks (${tasks.length})`}
-              </button>
-            ))}
-          </span>
-        }
+        hue={hue}
+        title={tab === 'interviews' ? 'Upcoming interviews' : 'Assessments & tasks'}
         icon={tab === 'interviews' ? <CalendarClock /> : <ClipboardList />}
         action={<ViewAll href={tab === 'interviews' ? '/applications?interview=UPCOMING' : '/applications?task=PENDING'} />}
       />
+      <div className="px-5 pb-3">
+        <div className="inline-flex rounded-lg bg-surface-2 p-0.5 ring-1 ring-line ring-inset" role="tablist">
+          {(['interviews', 'tasks'] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={cn('rounded-md px-3 py-1 text-xs font-semibold transition-all', tab === t ? 'bg-surface text-fg shadow-card' : 'text-muted hover:text-fg')}
+            >
+              {t === 'interviews' ? 'Interviews' : 'Tasks'}
+              <span className="tabular ml-1.5 rounded-full bg-surface-3 px-1.5 text-[10px]">{t === 'interviews' ? interviews.length : tasks.length}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {loading || !data ? (
         <SkeletonRows rows={4} />
       ) : tab === 'interviews' ? (
         interviews.length === 0 ? (
-          <EmptyState compact icon={<CalendarClock />} title="No upcoming interviews" description="Interviews you schedule on an application show up here." />
+          <EmptyState compact hue="indigo" icon={<CalendarClock />} title="No upcoming interviews" description="Interviews you schedule on an application show up here." />
         ) : (
           <>
             <Table head={['Company', 'Interview type', 'Date', 'Details']} className="hidden md:block">
               {interviews.map((i) => (
-                <tr key={i.id} className="hover:bg-surface-2/50">
+                <tr key={i.id} className={rowCls}>
                   <td className="px-4 py-2.5">
-                    <span className="flex items-center gap-2.5 font-medium">
+                    <span className="flex items-center gap-2.5 font-semibold">
                       <CompanyAvatar name={i.application!.company} size="sm" />
                       <span className="max-w-[130px] truncate">{i.application!.company}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-fg-2">{INTERVIEW_TYPE_LABEL[i.type]}</td>
+                  <td className="px-4 py-2.5">
+                    <Badge tone="accent">{INTERVIEW_TYPE_LABEL[i.type]}</Badge>
+                  </td>
                   <td className="px-4 py-2.5 whitespace-nowrap text-fg-2">{fmtDateTime(i.scheduledAt)}</td>
                   <td className="px-4 py-2.5 text-right">
-                    <Link href={`/applications/${i.applicationId}#interviews`} className="text-xs font-medium text-accent hover:underline">
-                      Details
+                    <Link href={`/applications/${i.applicationId}#interviews`} className="text-xs font-semibold text-accent hover:underline">
+                      Details →
                     </Link>
                   </td>
                 </tr>
@@ -378,7 +419,7 @@ export function InterviewsTasksTable({ data, loading }: { data?: DashboardOvervi
           </>
         )
       ) : tasks.length === 0 ? (
-        <EmptyState compact icon={<ClipboardList />} title="No pending tasks" description="Coding assessments and take-homes appear here." />
+        <EmptyState compact hue="teal" icon={<ClipboardList />} title="No pending tasks" description="Coding assessments and take-homes appear here." />
       ) : (
         <div className="divide-y divide-line border-t border-line">
           {tasks.map((t) => (
@@ -399,16 +440,16 @@ export function InterviewsTasksTable({ data, loading }: { data?: DashboardOvervi
 
 export function RecentActivityCard() {
   const [types, setTypes] = useState<string[]>([]);
-  const { data, isLoading } = useActivity(qs({ pageSize: '12', ...(types.length ? { types: types.join(',') } : {}) }));
+  const { data, isLoading } = useActivity(qs({ pageSize: '15', ...(types.length ? { types: types.join(',') } : {}) }));
   return (
-    <Card className="h-full">
-      <CardHeader title="Recent activity" icon={<History />} action={<ViewAll href={`/activity${types.length ? `?types=${types.join(',')}` : ''}`} />} />
-      <div className="px-4 pb-2">
+    <Card hue="slate" className="h-full">
+      <CardHeader hue="slate" title="Recent activity" icon={<History />} subtitle="Everything that changed, newest first" action={<ViewAll href={`/activity${types.length ? `?types=${types.join(',')}` : ''}`} />} />
+      <div className="px-5 pb-3">
         <ActivityTypeFilter value={types} onChange={setTypes} />
       </div>
-      <div className="max-h-[420px] overflow-y-auto px-2 pb-3">
+      <ScrollArea className="max-h-[440px] px-3 pb-3">
         <ActivityFeed items={data?.items} loading={isLoading} dense />
-      </div>
+      </ScrollArea>
     </Card>
   );
 }

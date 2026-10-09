@@ -72,33 +72,37 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <div className="relative hidden overflow-hidden border-r border-line bg-surface lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <div className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-accent/10 blur-3xl" />
-        <Brand />
+      <div className="bg-hero relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <div className="hero-pattern pointer-events-none absolute inset-0" />
+        <div className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-violet-500/30 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 -bottom-32 h-[420px] w-[420px] rounded-full bg-sky-500/20 blur-3xl" />
+        <Brand inverted />
         <div className="relative max-w-lg">
-          <h1 className="text-4xl font-semibold tracking-tight text-balance">Your job search, piloted.</h1>
-          <p className="mt-3 text-fg-2">Track every application, wishlist role and recruiter conversation — and know exactly what to do next.</p>
+          <h1 className="text-5xl font-extrabold tracking-tight text-balance">
+            Your job search, <span className="bg-gradient-to-r from-indigo-200 to-violet-200 bg-clip-text text-transparent">piloted.</span>
+          </h1>
+          <p className="mt-4 text-lg text-indigo-100/85">Track every application, wishlist role and recruiter conversation — and know exactly what to do next.</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {features.map((f) => (
               <div key={f.title} className="flex gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-indigo-100 ring-1 ring-white/15 ring-inset">
                   <f.icon className="h-4 w-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-medium">{f.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted">{f.text}</p>
+                  <p className="text-sm font-semibold">{f.title}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-indigo-200/80">{f.text}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <p className="relative text-xs text-muted">© {new Date().getFullYear()} ZiPilot</p>
+        <p className="relative text-xs text-indigo-200/70">© {new Date().getFullYear()} ZiPilot</p>
       </div>
 
       <div className="flex items-center justify-center px-4 py-12 sm:px-6">
         <div className="w-full max-w-sm">
           <Brand className="mb-10 lg:hidden" />
-          <h2 className="text-2xl font-semibold tracking-tight">
+          <h2 className="text-3xl font-bold tracking-tight">
             {mode === 'signin' ? 'Welcome back' : mode === 'signup' ? 'Create your account' : 'Reset password'}
           </h2>
           <p className="mt-1 text-sm text-muted">

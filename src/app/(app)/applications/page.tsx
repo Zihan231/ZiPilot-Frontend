@@ -9,7 +9,8 @@ import { ApplicationRowMenu, QuickLinks, StatusMenu } from '@/components/applica
 import { DebouncedInput, FilterChips, FilterDrawer, PresetsMenu } from '@/components/applications/filter-ui';
 import { OptionList } from '@/components/ui/multi-select';
 import { MenuItem, MenuLabel, MenuSeparator, Popover } from '@/components/ui/overlay';
-import { Badge, Button, Card, Checkbox, cn, CompanyAvatar, EmptyState, LinkButton, Select, Skeleton } from '@/components/ui/ui';
+import { HScroll, TableScroll } from '@/components/ui/scroll';
+import { Badge, Button, Card, Checkbox, cn, CompanyAvatar, EmptyState, LinkButton, PageHeader, Select, Skeleton } from '@/components/ui/ui';
 import { download } from '@/lib/api';
 import {
   APPLIED_VIA_LABEL,
@@ -97,6 +98,20 @@ const COLUMNS: Column[] = [
   { key: 'lastActivityAt', label: 'Last activity', sort: 'lastActivityAt', render: (a) => <span className="whitespace-nowrap text-fg-2">{ago(a.lastActivityAt)}</span> },
 ];
 
+/** Row accent colour per status — a quick visual scan of the pipeline. */
+const STATUS_COLOR: Record<ApplicationRow['status'], string> = {
+  APPLIED: 'var(--info)',
+  SCREENING: 'var(--violet)',
+  IN_REVIEW: 'var(--violet)',
+  ASSESSMENT: 'var(--warn)',
+  INTERVIEW: 'var(--accent)',
+  OFFER: 'var(--good)',
+  ACCEPTED: 'var(--good)',
+  REJECTED: 'var(--critical)',
+  WITHDRAWN: 'var(--line-strong)',
+  GHOSTED: 'var(--line-strong)',
+};
+
 const DEFAULT_COLS = ['position', 'status', 'appliedAt', 'platform', 'workplace', 'messages', 'followUp', 'lastActivityAt'];
 const COLS_KEY = 'zp:app-cols';
 const SORT_OPTIONS = [
@@ -178,35 +193,38 @@ function ApplicationsList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Applications</h1>
-          <p className="text-sm text-muted">
-            {data ? (
-              <>
-                <span className="font-medium text-fg-2 tabular">{data.total.toLocaleString()}</span> {activeCount ? 'matching' : 'total'} applications
-              </>
-            ) : (
-              'Loading…'
-            )}
-          </p>
-        </div>
-        <LinkButton href="/applications/new" variant="primary" size="sm" className="hidden sm:inline-flex">
-          <Plus className="h-4 w-4" /> Add application
-        </LinkButton>
-      </div>
+      <PageHeader
+        title="Applications"
+        icon={<Briefcase />}
+        hue="indigo"
+        description={
+          data ? (
+            <>
+              <span className="font-semibold text-fg tabular">{data.total.toLocaleString()}</span> {activeCount ? 'applications match your filters' : 'applications tracked'}
+            </>
+          ) : (
+            'Loading…'
+          )
+        }
+        actions={
+          <LinkButton href="/applications/new" variant="primary" size="sm" className="hidden sm:inline-flex">
+            <Plus className="h-4 w-4" /> Add application
+          </LinkButton>
+        }
+      />
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 shadow-card lg:flex-row lg:items-center">
         <div className="relative flex-1 lg:max-w-sm">
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
           <DebouncedInput value={url.get('q')} onChange={(v) => url.update({ q: v })} placeholder="Search company, position, recruiter, notes…" className="pl-9" />
         </div>
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-0.5">
+        <span className="hidden h-6 w-px bg-line lg:block" />
+        <HScroll className="min-w-0 flex-1" innerClassName="flex items-center gap-2 py-0.5">
           <Popover
             width={220}
             trigger={({ toggle }) => (
-              <Button size="sm" onClick={toggle} className={cn(url.get('status') && 'border-accent text-accent')}>
+              <Button size="sm" variant={url.get('status') ? 'outline' : 'secondary'} onClick={toggle}>
                 Status{url.getList('status').length ? ` · ${url.getList('status').length}` : ''}
               </Button>
             )}
@@ -224,7 +242,7 @@ function ApplicationsList() {
             options={DATE_PRESETS}
             aria-label="Application date"
           />
-          <Button size="sm" onClick={() => setDrawer(true)} className={cn(activeCount > 0 && 'border-accent text-accent')}>
+          <Button size="sm" variant={activeCount > 0 ? 'outline' : 'secondary'} onClick={() => setDrawer(true)}>
             <Filter className="h-3.5 w-3.5" /> Filters
             {activeCount > 0 && <span className="rounded-full bg-accent px-1.5 text-[10px] text-white">{activeCount}</span>}
           </Button>
@@ -276,16 +294,16 @@ function ApplicationsList() {
             <MenuSeparator />
             <MenuItem onSelect={() => exportCsv('all')}>All applications</MenuItem>
           </Popover>
-        </div>
+        </HScroll>
       </div>
 
       <FilterChips defs={APPLICATION_FILTERS} url={url} facets={facets} total={data?.total} />
 
       {/* Bulk actions */}
       {selected.size > 0 && (
-        <div className="sticky top-[72px] z-10 flex flex-wrap items-center gap-2 rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-sm">
-          <ListChecks className="h-4 w-4 text-accent" />
-          <span className="font-medium text-accent">{selected.size} selected</span>
+        <div className="bg-hero sticky top-[76px] z-10 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-2.5 text-sm text-white shadow-pop">
+          <ListChecks className="h-4 w-4 text-indigo-200" />
+          <span className="font-semibold">{selected.size} selected</span>
           <div className="ml-auto flex flex-wrap gap-2">
             <Popover
               width={190}
@@ -312,7 +330,7 @@ function ApplicationsList() {
             >
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            <Button size="sm" variant="ghost" className="text-indigo-100 hover:bg-white/10 hover:text-white" onClick={() => setSelected(new Set())}>
               Clear
             </Button>
           </div>
@@ -320,6 +338,7 @@ function ApplicationsList() {
       )}
 
       <Card className={cn('overflow-hidden transition-opacity', isFetching && !isLoading && 'opacity-70')}>
+        {isFetching && !isLoading && <div className="bg-brand absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse" />}
         {isLoading ? (
           <div className="space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -344,20 +363,20 @@ function ApplicationsList() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-x-auto md:block">
+            <TableScroll className="hidden md:block">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="border-b border-line bg-surface-2/50 text-left text-[11px] font-medium tracking-wide text-muted uppercase">
-                    <th className="w-10 px-3 py-2.5">
+                  <tr className="border-b border-line bg-surface-2 text-left text-[10.5px] font-bold tracking-[0.06em] text-muted uppercase">
+                    <th className="sticky left-0 z-[1] w-10 bg-surface-2 px-3 py-3">
                       <Checkbox
                         checked={allChecked}
                         indeterminate={!allChecked && someChecked}
                         onChange={(v) => setSelected(v ? new Set(items.map((i) => i.id)) : new Set())}
                       />
                     </th>
-                    <SortHeader label="Company" k="company" sort={sort} dir={dir} onSort={toggleSort} />
+                    <SortHeader label="Company" k="company" sort={sort} dir={dir} onSort={toggleSort} sticky />
                     {visible.map((c) =>
-                      c.sort ? <SortHeader key={c.key} label={c.label} k={c.sort} sort={sort} dir={dir} onSort={toggleSort} /> : <th key={c.key} className="px-3 py-2.5 font-medium whitespace-nowrap">{c.label}</th>,
+                      c.sort ? <SortHeader key={c.key} label={c.label} k={c.sort} sort={sort} dir={dir} onSort={toggleSort} /> : <th key={c.key} className="px-3 py-3 whitespace-nowrap">{c.label}</th>,
                     )}
                     <th className="w-20 px-3 py-2.5" />
                   </tr>
@@ -367,9 +386,13 @@ function ApplicationsList() {
                     <tr
                       key={a.id}
                       onClick={() => router.push(`/applications/${a.id}`)}
-                      className={cn('cursor-pointer transition-colors hover:bg-surface-2/60', selected.has(a.id) && 'bg-accent-soft/50')}
+                      className={cn('group cursor-pointer transition-colors', selected.has(a.id) ? 'bg-accent-soft/60' : 'hover:bg-surface-2/70')}
                     >
-                      <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className={cn('sticky left-0 z-[1] px-3 py-3', selected.has(a.id) ? 'bg-accent-soft' : 'bg-surface group-hover:bg-surface-2')}
+                        style={{ boxShadow: `inset 3px 0 0 ${STATUS_COLOR[a.status]}` }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Checkbox
                           checked={selected.has(a.id)}
                           onChange={(v) =>
@@ -382,8 +405,8 @@ function ApplicationsList() {
                           }
                         />
                       </td>
-                      <td className="px-3 py-2.5">
-                        <Link href={`/applications/${a.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2.5 font-medium hover:text-accent">
+                      <td className={cn('sticky left-10 z-[1] px-3 py-3 shadow-[1px_0_0_var(--line)]', selected.has(a.id) ? 'bg-accent-soft' : 'bg-surface group-hover:bg-surface-2')}>
+                        <Link href={`/applications/${a.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2.5 font-semibold hover:text-accent">
                           <CompanyAvatar name={a.company} size="sm" />
                           <span className="max-w-[160px] truncate">{a.company}</span>
                         </Link>
@@ -401,7 +424,7 @@ function ApplicationsList() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableScroll>
 
             {/* Mobile: action-oriented cards */}
             <div className="divide-y divide-line md:hidden">
@@ -409,7 +432,7 @@ function ApplicationsList() {
                 const f = a.followUps[0];
                 const fn = f ? (daysLeft(f.dueAt) ?? 0) : null;
                 return (
-                  <div key={a.id} className="flex gap-3 px-4 py-3" onClick={() => router.push(`/applications/${a.id}`)}>
+                  <div key={a.id} className="flex gap-3 px-4 py-3.5" style={{ boxShadow: `inset 3px 0 0 ${STATUS_COLOR[a.status]}` }} onClick={() => router.push(`/applications/${a.id}`)}>
                     <Checkbox
                       checked={selected.has(a.id)}
                       onChange={(v) =>
@@ -481,11 +504,11 @@ function ApplicationsList() {
   );
 }
 
-function SortHeader({ label, k, sort, dir, onSort }: { label: string; k: string; sort: string; dir: string; onSort: (k: string) => void }) {
+function SortHeader({ label, k, sort, dir, onSort, sticky }: { label: string; k: string; sort: string; dir: string; onSort: (k: string) => void; sticky?: boolean }) {
   const active = sort === k;
   return (
-    <th className="px-3 py-2.5 font-medium whitespace-nowrap" aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-      <button onClick={() => onSort(k)} className={cn('inline-flex items-center gap-1 uppercase hover:text-fg', active && 'text-fg')}>
+    <th className={cn('px-3 py-3 whitespace-nowrap', sticky && 'sticky left-10 z-[1] bg-surface-2 shadow-[1px_0_0_var(--line)]')} aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button onClick={() => onSort(k)} className={cn('inline-flex items-center gap-1 uppercase hover:text-fg', active && 'text-accent')}>
         {label}
         {active ? dir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" /> : <ArrowUpDown className="h-3 w-3 opacity-40" />}
       </button>

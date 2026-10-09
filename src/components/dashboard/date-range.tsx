@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { fmtDate } from '@/lib/format';
 import type { RangeInfo } from '@/lib/types';
 import { Popover } from '../ui/overlay';
+import { HScroll } from '../ui/scroll';
 import { Button, cn, Input } from '../ui/ui';
 
 export const RANGE_OPTIONS = [
@@ -30,7 +31,8 @@ export function DateRangePicker({ value, onChange, info }: { value: RangeValue; 
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="no-scrollbar flex max-w-full overflow-x-auto rounded-lg border border-line bg-surface p-0.5 shadow-card" role="tablist" aria-label="Date range">
+      <HScroll className="max-w-full rounded-xl border border-line bg-surface-2 shadow-[inset_0_1px_2px_rgb(15_23_42/0.04)]" innerClassName="flex p-1" arrows={false}>
+      <div className="flex" role="tablist" aria-label="Date range">
         {RANGE_OPTIONS.map((o) => (
           <button
             key={o.value}
@@ -38,8 +40,8 @@ export function DateRangePicker({ value, onChange, info }: { value: RangeValue; 
             aria-selected={value.range === o.value}
             onClick={() => onChange({ range: o.value })}
             className={cn(
-              'rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-              value.range === o.value ? 'bg-accent text-accent-ink shadow-sm' : 'text-fg-2 hover:bg-surface-2 hover:text-fg',
+              'rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all',
+              value.range === o.value ? 'bg-surface text-accent shadow-card ring-1 ring-line' : 'text-fg-2 hover:text-fg',
             )}
           >
             <span className="sm:hidden">{o.short}</span>
@@ -53,8 +55,8 @@ export function DateRangePicker({ value, onChange, info }: { value: RangeValue; 
             <button
               onClick={toggle}
               className={cn(
-                'flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-                isCustom ? 'bg-accent text-accent-ink shadow-sm' : 'text-fg-2 hover:bg-surface-2 hover:text-fg',
+                'flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all',
+                isCustom ? 'bg-surface text-accent shadow-card ring-1 ring-line' : 'text-fg-2 hover:text-fg',
               )}
             >
               <CalendarRange className="h-3.5 w-3.5" /> Custom
@@ -88,6 +90,7 @@ export function DateRangePicker({ value, onChange, info }: { value: RangeValue; 
           )}
         </Popover>
       </div>
+      </HScroll>
       {info && (
         <span className="text-xs text-muted">
           {info.from || info.to ? (

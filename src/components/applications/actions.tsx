@@ -67,7 +67,7 @@ export function FollowUpDoneButton({ id, size = 'xs' }: { id: string; size?: 'xs
   return (
     <Button
       size={size}
-      variant="soft"
+      variant="success"
       loading={complete.isPending}
       onClick={(e) => {
         e.stopPropagation();
@@ -95,14 +95,16 @@ export function RescheduleFollowUp({ id, size = 'xs' }: { id: string; size?: 'xs
       trigger={({ toggle }) => (
         <Button
           size={size}
-          variant="ghost"
+          variant="secondary"
           onClick={(e) => {
             e.stopPropagation();
             toggle();
           }}
           title="Reschedule follow-up"
+          aria-label="Reschedule follow-up"
         >
-          <CalendarClock className="h-3.5 w-3.5" /> {size === 'sm' ? 'Reschedule' : ''}
+          <CalendarClock className="h-3.5 w-3.5" />
+          <span className={size === 'sm' ? '' : 'hidden xl:inline'}>Snooze</span>
         </Button>
       )}
     >
@@ -165,7 +167,7 @@ export function MarkRepliedButton({ id }: { id: string }) {
   return (
     <Button
       size="xs"
-      variant="soft"
+      variant="success"
       loading={update.isPending}
       onClick={(e) => {
         e.stopPropagation();

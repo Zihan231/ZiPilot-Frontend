@@ -8,7 +8,9 @@ import { toast } from 'sonner';
 import { MarkAppliedButton, StatusBadge } from '@/components/applications/actions';
 import { DebouncedInput, FilterChips, FilterDrawer, PresetsMenu } from '@/components/applications/filter-ui';
 import { MenuItem, MenuLabel, MenuSeparator, Popover } from '@/components/ui/overlay';
-import { Badge, Button, Card, CardHeader, cn, CompanyAvatar, EmptyState, LinkButton, Select, SkeletonRows } from '@/components/ui/ui';
+import { HScroll } from '@/components/ui/scroll';
+import { Badge, Button, Card, CardHeader, cn, CompanyAvatar, EmptyState, LinkButton, PageHeader, Select, SkeletonRows } from '@/components/ui/ui';
+import { AlarmClock, TimerOff } from 'lucide-react';
 import { download } from '@/lib/api';
 import { JOB_TYPE_LABEL, PLATFORM_LABEL, PRIORITY_LABEL, PRIORITY_TONE, WORKPLACE_LABEL } from '@/lib/enums';
 import { countActive, DEFAULT_WISHLIST_PRESETS, useUrlFilters, WISHLIST_FILTERS } from '@/lib/filters';
@@ -38,17 +40,22 @@ function urgencyTone(n: number | null) {
   return 'neutral' as const;
 }
 
+const STRIPE: Record<string, string> = { critical: 'var(--critical)', serious: 'var(--serious)', warn: 'var(--c-amber)', neutral: 'var(--line-strong)' };
+
 function JobRow({ job }: { job: WishlistJob }) {
   const router = useRouter();
   const update = useUpdateWishlist();
   const del = useDeleteWishlist();
   const n = daysLeft(job.deadline);
   return (
-    <div className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-surface-2/50 md:flex-row md:items-center md:gap-4">
+    <div
+      className="flex flex-col gap-2 px-4 py-3.5 transition-colors hover:bg-surface-2/60 md:flex-row md:items-center md:gap-4"
+      style={{ boxShadow: `inset 3px 0 0 ${job.appliedAt ? 'var(--good)' : STRIPE[urgencyTone(n)]}` }}
+    >
       <Link href={`/wishlist/${job.id}`} className="flex min-w-0 flex-1 items-center gap-3">
         <CompanyAvatar name={job.company} />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium">
+          <p className="truncate text-sm font-semibold">
             {job.company} <span className="font-normal text-fg-2">· {job.position}</span>
           </p>
           <p className="truncate text-xs text-muted">
@@ -168,23 +175,25 @@ function WishlistList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Wishlist</h1>
-          <p className="text-sm text-muted">Jobs you plan to apply to — nearest deadline first.</p>
-        </div>
-        <LinkButton href="/wishlist/new" variant="primary" size="sm" className="hidden sm:inline-flex">
-          <Plus className="h-4 w-4" /> Add job
-        </LinkButton>
-      </div>
+      <PageHeader
+        title="Wishlist"
+        icon={<Bookmark />}
+        hue="amber"
+        description="Jobs you plan to apply to — nearest deadline first."
+        actions={
+          <LinkButton href="/wishlist/new" variant="primary" size="sm" className="hidden sm:inline-flex">
+            <Plus className="h-4 w-4" /> Add job
+          </LinkButton>
+        }
+      />
 
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <div className="flex rounded-lg border border-line bg-surface p-0.5 shadow-card">
+      <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 shadow-card lg:flex-row lg:items-center">
+        <div className="flex rounded-xl bg-surface-2 p-1 ring-1 ring-line ring-inset">
           {STATES.map((s) => (
             <button
               key={s.value}
               onClick={() => url.update({ state: s.value || null })}
-              className={cn('flex-1 rounded-md px-3 py-1 text-xs font-medium lg:flex-none', state === s.value ? 'bg-accent text-accent-ink' : 'text-fg-2 hover:bg-surface-2')}
+              className={cn('flex-1 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all lg:flex-none', state === s.value ? 'bg-surface text-accent shadow-card ring-1 ring-line' : 'text-fg-2 hover:text-fg')}
             >
               {s.label}
             </button>
@@ -194,8 +203,8 @@ function WishlistList() {
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
           <DebouncedInput value={url.get('q')} onChange={(v) => url.update({ q: v })} placeholder="Search wishlist…" className="pl-9" />
         </div>
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
-          <Button size="sm" onClick={() => setDrawer(true)} className={cn(activeCount > 0 && 'border-accent text-accent')}>
+        <HScroll className="min-w-0 flex-1" innerClassName="flex items-center gap-2 py-0.5">
+          <Button size="sm" variant={activeCount > 0 ? 'outline' : 'secondary'} onClick={() => setDrawer(true)}>
             <Filter className="h-3.5 w-3.5" /> Filters
             {activeCount > 0 && <span className="rounded-full bg-accent px-1.5 text-[10px] text-white">{activeCount}</span>}
           </Button>
@@ -224,18 +233,25 @@ function WishlistList() {
             <MenuItem onSelect={() => exportCsv(true)}>Filtered wishlist</MenuItem>
             <MenuItem onSelect={() => exportCsv(false)}>Entire wishlist</MenuItem>
           </Popover>
-        </div>
+        </HScroll>
       </div>
 
       <FilterChips defs={WISHLIST_FILTERS} url={url} facets={facets} total={main.data ? main.data.total + (split ? (expired.data?.total ?? 0) : 0) : undefined} />
 
-      <Card className="overflow-hidden">
-        <CardHeader title={split ? 'Active' : STATES.find((s) => s.value === state)?.label} icon={<Bookmark />} count={main.data?.total} />
+      <Card hue="amber" className="overflow-hidden">
+        <CardHeader
+          hue="amber"
+          title={split ? 'Active — apply before the deadline' : STATES.find((s) => s.value === state)?.label}
+          icon={<AlarmClock />}
+          count={main.data?.total}
+          subtitle={split ? 'Colour stripe shows urgency: red overdue · orange ≤1 day · amber ≤3 days' : undefined}
+        />
         {main.isLoading ? (
           <SkeletonRows rows={6} />
         ) : !main.data?.items.length ? (
           <EmptyState
             icon={<Bookmark />}
+            hue="amber"
             title={activeCount ? 'No wishlist jobs match these filters' : 'Your wishlist is empty'}
             description={activeCount ? 'Try clearing a filter.' : 'Save jobs you want to apply to — ZiPilot will keep their deadlines in front of you.'}
             action={
@@ -259,8 +275,8 @@ function WishlistList() {
       </Card>
 
       {split && (expired.data?.total ?? 0) > 0 && (
-        <Card className="overflow-hidden">
-          <CardHeader title="Expired" icon={<Bookmark />} count={expired.data!.total} subtitle="Deadline passed — apply anyway or remove" />
+        <Card hue="rose" className="overflow-hidden">
+          <CardHeader hue="rose" title="Expired" icon={<TimerOff />} count={expired.data!.total} subtitle="Deadline passed — apply anyway or remove" />
           <div className="divide-y divide-line border-t border-line opacity-90">
             {expired.data!.items.map((j) => (
               <JobRow key={j.id} job={j} />
