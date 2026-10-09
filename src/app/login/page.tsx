@@ -41,7 +41,8 @@ export default function LoginPage() {
       if (mode === 'signup') await signUpWithEmail(name, email, password);
       if (mode === 'reset') {
         await resetPassword(email);
-        toast.success('Password reset email sent');
+        // Firebase hides whether an account exists (email enumeration protection), so word it neutrally.
+        toast.success(`If an account exists for ${email}, a reset link is on its way. Check your inbox and spam folder.`, { duration: 8000 });
         setMode('signin');
       }
     } catch (err) {
