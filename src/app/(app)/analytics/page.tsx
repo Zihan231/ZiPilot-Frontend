@@ -1,7 +1,7 @@
 'use client';
 
 import { BarChart3, Building2, Filter as FunnelIcon, Laptop, Layers, PieChart } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { Suspense } from 'react';
 import { BarList, Donut, Funnel, PlatformChart, RateTile, VolumeChart } from '@/components/charts/charts';
 import { DateRangePicker, rangeFromParams, rangeToQuery } from '@/components/dashboard/date-range';

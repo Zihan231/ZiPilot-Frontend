@@ -2,7 +2,7 @@
 
 import { Bell, BellOff, Bookmark, ChevronLeft, ChevronRight, Download, ExternalLink, Filter, MoreHorizontal, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { Suspense, useState } from 'react';
 import { toast } from 'sonner';
 import { MarkAppliedButton, StatusBadge } from '@/components/applications/actions';

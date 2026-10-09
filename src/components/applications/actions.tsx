@@ -1,8 +1,8 @@
 'use client';
 
-import { CalendarClock, Check, ChevronDown, ExternalLink, Mail, MoreHorizontal, Pencil, Send, Trash2 } from 'lucide-react';
+import { CalendarClock, Check, ChevronDown, Loader2, ExternalLink, Mail, MoreHorizontal, Pencil, Send, Trash2 } from 'lucide-react';
 import { Linkedin } from '../ui/icons';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { useState } from 'react';
 import { STATUS_LABEL, STATUS_OPTIONS, STATUS_TONE } from '@/lib/enums';
 import { fromDateInput, todayInput } from '@/lib/format';
@@ -45,8 +45,14 @@ export function StatusMenu({ id, status, compact }: { id: string; status: Applic
           className="group inline-flex items-center gap-0.5 rounded-md focus-visible:outline-2 focus-visible:outline-accent"
           aria-label={`Change status (currently ${STATUS_LABEL[status]})`}
         >
-          <StatusBadge status={status} />
-          {!compact && <ChevronDown className="h-3 w-3 text-muted opacity-0 transition-opacity group-hover:opacity-100" />}
+          <span className={cn('relative inline-flex transition-opacity', setStatus.isPending && 'opacity-60')}>
+            <StatusBadge status={setStatus.isPending && setStatus.variables ? setStatus.variables.status : status} />
+          </span>
+          {setStatus.isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin text-accent" aria-label="Saving status" />
+          ) : (
+            !compact && <ChevronDown className="h-3 w-3 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
+          )}
         </button>
       )}
     >

@@ -1,16 +1,18 @@
 'use client';
 
 import { Activity, BarChart3, Bookmark, Briefcase, LayoutDashboard, LogOut, Moon, Plus, Search, Sun, X } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import Link, { useLinkStatus } from 'next/link';
+import { usePathname, useRouter as useNextRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useAttention, useOverview } from '@/lib/hooks';
 import { MenuItem, MenuLabel, MenuSeparator, Popover } from '../ui/overlay';
 import { BackToTop, ScrollProgress } from '../ui/scroll';
-import { Button, buttonClass, cn, LinkButton, Spinner } from '../ui/ui';
+import { Button, buttonClass, cn, LinkButton } from '../ui/ui';
 import { Brand, Logo } from './brand';
 import { GlobalSearch } from './global-search';
+import { Splash } from './splash';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Overview & actions' },
@@ -47,6 +49,25 @@ function useNavCounts(): Record<string, { value: number; urgent?: boolean } | un
     '/applications': get('total') !== undefined ? { value: get('total')! } : undefined,
     '/wishlist': get('wishlist') !== undefined ? { value: get('wishlist')! } : undefined,
   };
+}
+
+/**
+ * Nav icon with a loading ring that fades in only if the page takes >200ms to open.
+ * The icon itself never changes, so fast navigations show no flicker or layout shift.
+ */
+function NavIcon({ icon: Icon, className = 'h-4 w-4' }: { icon: React.ElementType; className?: string }) {
+  const { pending } = useLinkStatus();
+  return (
+    <span className="relative inline-flex items-center justify-center">
+      <Icon className={cn(className, 'transition-opacity duration-200', pending && 'opacity-60')} />
+      {pending && (
+        // Outer span fades in after a delay; inner span spins (separate elements so animations don't clash).
+        <span aria-hidden className="nav-pending-ring absolute -inset-1.5">
+          <span className="block h-full w-full animate-spin rounded-full border-2 border-current border-t-transparent [animation-duration:0.8s]" />
+        </span>
+      )}
+    </span>
+  );
 }
 
 function UserMenu({ dark }: { dark?: boolean }) {
@@ -132,7 +153,7 @@ function AddMenu({ fab }: { fab?: boolean }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  const router = useNextRouter();
   const pathname = usePathname();
   const [mobileSearch, setMobileSearch] = useState(false);
 
@@ -142,12 +163,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Logo className="h-11 w-11" />
-          <Spinner />
-        </div>
-      </div>
+      <Splash message={!loading && !user ? 'Redirecting to sign in…' : undefined} />
     );
   }
 
@@ -184,7 +200,7 @@ function Shell({ children, pathname, mobileSearch, setMobileSearch }: { children
               >
                 {active && <span className="bg-brand absolute top-2 bottom-2 left-0 w-[3px] rounded-r-full" />}
                 <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition-colors', active ? 'bg-brand text-white shadow-lg shadow-indigo-900/40' : 'bg-white/[0.04] text-sidebar-muted group-hover:text-white')}>
-                  <n.icon className="h-4 w-4" />
+                  <NavIcon icon={n.icon} />
                 </span>
                 <span className="flex-1">
                   <span className="block leading-tight">{n.label}</span>
@@ -269,7 +285,7 @@ function Shell({ children, pathname, mobileSearch, setMobileSearch }: { children
         </div>
       )}
 
-      <main className="animate-fade-up mx-auto max-w-[1480px] px-4 pt-6 pb-32 sm:px-6 lg:px-8 lg:pb-14">{children}</main>
+      <main className="mx-auto max-w-[1480px] px-4 pt-6 pb-32 sm:px-6 lg:px-8 lg:pb-14">{children}</main>
 
       <BackToTop />
 
@@ -285,7 +301,7 @@ function Shell({ children, pathname, mobileSearch, setMobileSearch }: { children
             <Link key={n.href} href={n.href} className={cn('relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold', active ? 'text-accent' : 'text-muted')}>
               {active && <span className="bg-brand absolute top-0 h-[3px] w-8 rounded-b-full" />}
               <span className="relative">
-                <n.icon className="h-5 w-5" />
+                <NavIcon icon={n.icon} className="h-5 w-5" />
                 {c?.urgent && <span className="absolute -top-1.5 -right-2.5 min-w-4 rounded-full bg-orange-500 px-1 text-center text-[9px] leading-4 font-bold text-white">{c.value}</span>}
               </span>
               {n.label}

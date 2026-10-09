@@ -2,7 +2,7 @@
 
 import { ArrowRight, BarChart3, Bookmark, Briefcase, CalendarClock, CalendarRange, ClipboardList, History, MessageSquareReply, PieChart } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { useState } from 'react';
 import { INTERVIEW_TYPE_LABEL, PRIORITY_LABEL, PRIORITY_TONE, STATUS_LABEL, TASK_STATUS_LABEL, TASK_TYPE_LABEL } from '@/lib/enums';
 import type { Hue } from '@/lib/enums';

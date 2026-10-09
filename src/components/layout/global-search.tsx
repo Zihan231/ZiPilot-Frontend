@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowRight, Bookmark, Briefcase, Loader2, Search, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { STATUS_LABEL, STATUS_TONE } from '@/lib/enums';
 import { daysLeft, daysLeftLabel, fmtShort } from '@/lib/format';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { useState } from 'react';
 import { CURRENCIES, JOB_TYPE_OPTIONS, PLATFORM_OPTIONS, PRIORITY_OPTIONS, WORKPLACE_OPTIONS } from '@/lib/enums';
 import { fromDateInput, toDateInput, todayInput } from '@/lib/format';

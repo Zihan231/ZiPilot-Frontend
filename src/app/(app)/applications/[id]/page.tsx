@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ExternalLink, History, Info, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { use, useEffect, useState } from 'react';
 import { StatusMenu } from '@/components/applications/actions';
 import { FollowUpsPanel, InterviewsPanel, RecruiterPanel, TasksPanel } from '@/components/applications/detail-panels';

@@ -2,7 +2,7 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Briefcase, ChevronLeft, ChevronRight, Columns3, Download, Filter, ListChecks, Plus, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ApplicationRowMenu, QuickLinks, StatusMenu } from '@/components/applications/actions';
