@@ -1,15 +1,13 @@
 'use client';
 
-import { BellRing, CheckCircle2, Mail, MailWarning, Send } from 'lucide-react';
+import { BellRing, CheckCircle2, Mail, MailWarning } from 'lucide-react';
 import { ago } from '@/lib/format';
-import { useNotificationStatus, useRunReminders, useSendTestEmail } from '@/lib/hooks';
-import { Button, Card, IconTile, Skeleton } from '../ui/ui';
+import { useNotificationStatus } from '@/lib/hooks';
+import { Card, IconTile, Skeleton } from '../ui/ui';
 
-/** Shows whether deadline reminder emails are active, where they go, and lets the user test delivery. */
+/** Shows whether deadline reminder emails are active and where they go. */
 export function EmailRemindersCard() {
   const { data, isLoading } = useNotificationStatus();
-  const test = useSendTestEmail();
-  const run = useRunReminders();
 
   if (isLoading || !data) return <Skeleton className="h-[74px] rounded-2xl" />;
 
@@ -44,16 +42,6 @@ export function EmailRemindersCard() {
           {data.recipient} · {data.schedule} · 3 days and 1 day before each deadline
           {data.lastSentAt ? ` · last sent ${ago(data.lastSentAt)}` : ''}
         </p>
-      </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
-        <Button size="sm" onClick={() => test.mutate()} loading={test.isPending}>
-          <Mail className="h-3.5 w-3.5" /> Send test email
-        </Button>
-        {data.pendingNow > 0 && (
-          <Button size="sm" variant="soft" onClick={() => run.mutate()} loading={run.isPending}>
-            <Send className="h-3.5 w-3.5" /> Send {data.pendingNow} due now
-          </Button>
-        )}
       </div>
     </Card>
   );
