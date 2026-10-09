@@ -90,6 +90,7 @@ export function OptionPicker({
   return (
     <Popover
       width={280}
+      anchorClassName="flex w-full"
       trigger={({ toggle, open }) => (
         <button
           type="button"
